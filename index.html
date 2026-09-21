@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Σκάκι & Τάβλι 360°</title>
+<meta name="description" content="Ο προσωπικός σου δάσκαλος για Σκάκι και όλα τα είδη Τάβλι (Πόρτες, Πλακωτό, Φεύγα). Διαδραστική σκακιέρα με AI, ασκήσεις, ανοίγματα, φινάλε, στρατηγική και roadmap για επαγγελματικό επίπεδο.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <h1>Σκάκι &amp; Τάβλι 360°</h1>
+        <small>Ο δάσκαλός σου — από αρχάριος σε επαγγελματία</small>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-view="home" class="active">🏠 Αρχική</button>
+      <button data-view="chess">♟️ Σκάκι</button>
+      <button data-view="tavli">🎲 Τάβλι</button>
+      <button data-view="roadmap">🎯 Πλάνο</button>
+      <button data-view="glossary">📖 Γλωσσάρι</button>
+    </nav>
+    <div class="appearance">
+      <label>🎨 Θέμα ταμπλού:
+        <select id="set-board">
+          <option value="wood">Καρυδιά (κλασικό)</option>
+          <option value="mahogany">Μαόνι</option>
+          <option value="oak">Δρυς</option>
+          <option value="green">Πράσινο τουρνουά</option>
+          <option value="blue">Μπλε ωκεανός</option>
+          <option value="marble">Μάρμαρο</option>
+          <option value="red">Κόκκινο</option>
+          <option value="purple">Μωβ</option>
+          <option value="night">Νύχτα</option>
+        </select>
+      </label>
+      <label>♟️ Πιόνια:
+        <select id="set-pieces">
+          <option value="classic">Κρεμ / Έβενος</option>
+          <option value="wood">Ξύλινα</option>
+          <option value="marble">Μάρμαρο</option>
+          <option value="blue">Μπλε / Κρεμ</option>
+          <option value="red">Κόκκινα / Κρεμ</option>
+          <option value="green">Πράσινα / Κρεμ</option>
+        </select>
+      </label>
+      <label>Σχήμα:
+        <select id="set-pstyle">
+          <option value="staunton">Staunton 3D</option>
+          <option value="glyph">Κλασικά σύμβολα</option>
+        </select>
+      </label>
+      <label>⚪ Πούλια:
+        <select id="set-checkers">
+          <option value="classic">Ιβουάρ / Μαύρα</option>
+          <option value="pearl">Μαργαριτάρι / Μαύρα</option>
+          <option value="green">Λευκά / Πράσινα</option>
+          <option value="red">Λευκά / Κόκκινα</option>
+          <option value="blue">Ιβουάρ / Μπλε</option>
+          <option value="orange">Λευκά / Πορτοκαλί</option>
+          <option value="purple">Λευκά / Μωβ</option>
+          <option value="amber">Κεχριμπάρι / Μαύρα</option>
+          <option value="marble">Μάρμαρο</option>
+        </select>
+      </label>
+      <label>Χρώμα εφαρμογής:
+        <select id="set-accent">
+          <option value="amber">Χρυσό</option>
+          <option value="ocean">Θαλασσί</option>
+          <option value="forest">Δάσος</option>
+          <option value="royal">Βασιλικό</option>
+          <option value="rose">Ροζ</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="set-3d" checked> 3D πιόνια</label>
+      <label><input type="checkbox" id="set-view3d"> 3D κλίση ταμπλού</label>
+      <button class="mute-btn on" id="set-mute" title="Ήχος on/off">🔊 Ήχος</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ============ HOME ============ -->
+  <section class="view active" id="view-home">
+    <div class="hero">
+      <h2>Γίνε επαγγελματίας παίκτης 🏆</h2>
+      <p>Μια πλήρης, δωρεάν σχολή για <b>Σκάκι</b> και για <b>όλα τα είδη Τάβλι</b> — Πόρτες, Πλακωτό, Φεύγα.
+      Μάθε τους κανόνες, εξασκήσου σε διαδραστική σκακιέρα με αντίπαλο AI, λύσε ασκήσεις τακτικής,
+      μελέτησε ανοίγματα, φινάλε και στρατηγική, και ακολούθησε ένα δομημένο πλάνο ανέλιξης.</p>
+    </div>
+    <div class="big-choice">
+      <div class="choice" data-goto="chess"><div class="ic">♟️</div><h3>Σκάκι</h3><p>Κανόνες · Παίξε με AI · Ασκήσεις · Ανοίγματα · Φινάλε · Στρατηγική</p></div>
+      <div class="choice" data-goto="tavli"><div class="ic">🎲</div><h3>Τάβλι</h3><p>Πόρτες · Πλακωτό · Φεύγα · Διαδραστικό ταμπλό · Ζαριές ανοίγματος · Πιθανότητες</p></div>
+    </div>
+    <div class="card">
+      <h2>Πώς να το χρησιμοποιήσεις</h2>
+      <div class="grid3">
+        <div><h3>1. Μάθε</h3><p>Ξεκίνα από τους <b>Κανόνες</b> κάθε παιχνιδιού. Είναι γραμμένοι απλά, με παραδείγματα.</p></div>
+        <div><h3>2. Εξασκήσου</h3><p>Παίξε στη διαδραστική σκακιέρα/ταμπλό και λύσε <b>ασκήσεις</b> κάθε μέρα.</p></div>
+        <div><h3>3. Ανέβα επίπεδο</h3><p>Ακολούθησε το <b>Πλάνο (roadmap)</b> — τσέκαρε ό,τι κατακτάς· η πρόοδος αποθηκεύεται.</p></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Η πρόοδός σου</h2>
+      <div class="progress-bar"><i id="home-progress"></i></div>
+      <p id="home-progress-text" style="color:var(--muted);margin-top:8px;"></p>
+      <div class="btn-row"><button class="btn gold" data-goto="roadmap">Άνοιξε το Πλάνο →</button></div>
+    </div>
+  </section>
+
+  <!-- ============ CHESS ============ -->
+  <section class="view" id="view-chess">
+    <div class="subnav" id="chess-subnav">
+      <button data-sub="c-rules" class="active">Κανόνες</button>
+      <button data-sub="c-play">Παίξε (AI)</button>
+      <button data-sub="c-open">Ανοίγματα</button>
+      <button data-sub="c-puzzle">Ασκήσεις</button>
+      <button data-sub="c-end">Φινάλε</button>
+      <button data-sub="c-strat">Στρατηγική</button>
+    </div>
+
+    <!-- Κανόνες -->
+    <div class="sub active" id="sub-c-rules">
+      <div class="card">
+        <h2>♟️ Οι κανόνες του σκακιού</h2>
+        <p>Το σκάκι παίζεται σε σκακιέρα 8×8 (64 τετράγωνα). Κάθε παίκτης έχει 16 κομμάτια. Στόχος: να δώσεις <b>ματ</b> στον βασιλιά του αντιπάλου — να τον απειλήσεις χωρίς να μπορεί να ξεφύγει.</p>
+        <div class="callout">Χρυσός κανόνας τοποθέτησης: «λευκό στα δεξιά» (το κάτω-δεξιά τετράγωνο είναι λευκό) και η βασίλισσα μπαίνει στο δικό της χρώμα.</div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h3>Πώς κινείται κάθε κομμάτι</h3>
+          <table class="data">
+            <tr><th>Κομμάτι</th><th>Αξία</th><th>Κίνηση</th></tr>
+            <tr><td>♙ Πιόνι</td><td>1</td><td>1 μπροστά (2 στην πρώτη κίνηση), «τρώει» διαγώνια.</td></tr>
+            <tr><td>♘ Ίππος</td><td>3</td><td>Σχήμα «Γ» (2+1). Πηδάει πάνω από κομμάτια.</td></tr>
+            <tr><td>♗ Αξιωματικός</td><td>3</td><td>Διαγώνια, όσο θέλει.</td></tr>
+            <tr><td>♖ Πύργος</td><td>5</td><td>Ευθεία (οριζόντια/κάθετα), όσο θέλει.</td></tr>
+            <tr><td>♕ Βασίλισσα</td><td>9</td><td>Πύργος + Αξιωματικός μαζί — το πιο δυνατό.</td></tr>
+            <tr><td>♔ Βασιλιάς</td><td>∞</td><td>1 τετράγωνο προς κάθε κατεύθυνση.</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Ειδικές κινήσεις</h3>
+          <p><b>Ροκέ (O-O / O-O-O):</b> βασιλιάς + πύργος κινούνται μαζί για ασφάλεια. Απαιτεί: κανένα από τα δύο δεν έχει κουνηθεί, ενδιάμεσα κενά, ο βασιλιάς δεν είναι/περνά από σαχ.</p>
+          <p><b>En passant:</b> αν εχθρικό πιόνι προχωρήσει 2 τετράγωνα και σταθεί δίπλα στο δικό σου, μπορείς να το «φας εν διελεύσει» στην αμέσως επόμενη κίνηση.</p>
+          <p><b>Προαγωγή:</b> πιόνι που φτάνει στην τελευταία οριζόντια γίνεται όποιο κομμάτι θες (σχεδόν πάντα βασίλισσα).</p>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h3>Σαχ, Ματ, Πατ, Ισοπαλία</h3>
+          <ul class="clean">
+            <li><b>Σαχ (+):</b> ο βασιλιάς απειλείται — πρέπει υποχρεωτικά να αντιδράσεις.</li>
+            <li><b>Ματ (#):</b> σαχ χωρίς διαφυγή — τέλος παιχνιδιού, νίκη.</li>
+            <li><b>Πατ:</b> ο παίκτης δεν έχει καμία νόμιμη κίνηση αλλά ΔΕΝ είναι σε σαχ → <b>ισοπαλία</b>.</li>
+            <li><b>Ισοπαλία επίσης:</b> ανεπαρκές υλικό, 3 φορές ίδια θέση, κανόνας 50 κινήσεων, συμφωνία.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Σημειογραφία (algebraic)</h3>
+          <p>Στήλες <span class="kbd">a–h</span>, οριζόντιες <span class="kbd">1–8</span>. Κάθε τετράγωνο έχει όνομα (π.χ. <span class="kbd">e4</span>).</p>
+          <p>Γράμμα κομματιού + τετράγωνο: <span class="kbd">Nf3</span> (ίππος στο f3), <span class="kbd">Bb5</span>. Αιχμαλωσία: <span class="kbd">x</span> (π.χ. <span class="kbd">exd5</span>). Ροκέ: <span class="kbd">O-O</span>. Σαχ: <span class="kbd">+</span>, Ματ: <span class="kbd">#</span>.</p>
+          <div class="callout red">Πήγαινε τώρα στο <b>«Παίξε (AI)»</b> για να δεις τους κανόνες ζωντανά — η σκακιέρα επιτρέπει μόνο νόμιμες κινήσεις.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Παίξε -->
+    <div class="sub" id="sub-c-play">
+      <div class="card">
+        <h2>Παίξε στη διαδραστική σκακιέρα</h2>
+        <div class="board-wrap">
+          <div class="board-col"><div id="play-board"></div></div>
+          <div class="side-panel">
+            <div class="status-line" id="play-status">Σειρά: Λευκά</div>
+            <div class="btn-row">
+              <button class="btn primary" id="play-new">Νέα παρτίδα</button>
+              <button class="btn" id="play-undo">↶ Αναίρεση</button>
+              <button class="btn" id="play-flip">⟲ Γύρισε</button>
+            </div>
+            <label class="ck"><input type="checkbox" id="play-vs" checked> Παίξε εναντίον υπολογιστή</label>
+            <label class="ck">Ως:
+              <select id="play-side"><option value="w">Λευκά</option><option value="b">Μαύρα</option></select>
+            </label>
+            <label class="ck">Δυσκολία AI:
+              <select id="play-depth">
+                <option value="1">Εύκολος</option>
+                <option value="2" selected>Μέτριος</option>
+                <option value="3">Δυνατός</option>
+              </select>
+            </label>
+            <h3 style="margin-bottom:4px;">Κινήσεις</h3>
+            <div class="movelist" id="play-moves"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ανοίγματα -->
+    <div class="sub" id="sub-c-open">
+      <div class="card">
+        <h2>Ανοίγματα — μάθε τις ιδέες</h2>
+        <p>Διάλεξε άνοιγμα και πάτα «Επόμενη» για να δεις τις κινήσεις να παίζονται στη σκακιέρα.</p>
+        <div class="board-wrap">
+          <div class="board-col"><div id="open-board"></div></div>
+          <div class="side-panel">
+            <label class="ck">Άνοιγμα:
+              <select id="open-select"></select>
+            </label>
+            <div class="btn-row">
+              <button class="btn" id="open-prev">◂ Πίσω</button>
+              <button class="btn primary" id="open-next">Επόμενη ▸</button>
+              <button class="btn" id="open-reset">↺ Αρχή</button>
+            </div>
+            <div class="status-line" id="open-status"></div>
+            <div class="movelist" id="open-moves"></div>
+            <div class="callout" id="open-idea"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ασκήσεις -->
+    <div class="sub" id="sub-c-puzzle">
+      <div class="card">
+        <h2>Ασκήσεις τακτικής (puzzles)</h2>
+        <p>Βρες την καλύτερη κίνηση. Κάνε την κίνηση στη σκακιέρα.</p>
+        <div class="board-wrap">
+          <div class="board-col"><div id="puz-board"></div></div>
+          <div class="side-panel">
+            <div class="status-line" id="puz-title"></div>
+            <div class="status-line" id="puz-feedback">Κάνε την κίνησή σου…</div>
+            <div class="btn-row">
+              <button class="btn" id="puz-hint">💡 Βοήθεια</button>
+              <button class="btn" id="puz-solve">Δείξε λύση</button>
+              <button class="btn primary" id="puz-next">Επόμενη ▸</button>
+            </div>
+            <div class="callout" id="puz-lesson" style="display:none;"></div>
+            <p style="color:var(--muted);" id="puz-score"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Φινάλε -->
+    <div class="sub" id="sub-c-end">
+      <div class="card">
+        <h2>Φινάλε — πώς κερδίζεις κερδισμένες θέσεις</h2>
+        <p>Πολλές παρτίδες κρίνονται στο φινάλε. Αυτά είναι τα απαραίτητα που πρέπει να ξέρεις απ' έξω.</p>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Βασιλιάς + Βασίλισσα εναντίον Βασιλιά</h3>
+          <p>Ο πιο συνηθισμένος τρόπος ματ. Οδήγησε τον εχθρικό βασιλιά στην άκρη με τη βασίλισσα κρατώντας απόσταση «ίππου», και φέρε τον δικό σου βασιλιά για υποστήριξη. <b>Πρόσεχε τον πατ</b> — άφησε πάντα τετράγωνο διαφυγής μέχρι το τελευταίο σαχ.</p></div>
+        <div class="card"><h3>Βασιλιάς + Πύργος εναντίον Βασιλιά</h3>
+          <p>Τεχνική «κουτιού»: ο πύργος περιορίζει τον βασιλιά σε μια ζώνη, οι δύο βασιλιάδες παίρνουν αντιπαλότητα, και ο πύργος δίνει το ματ στην άκρη. Χρειάζεται μέθοδο — εξασκήσου.</p></div>
+        <div class="card"><h3>Αντιπαλότητα (opposition)</h3>
+          <p>Στα φινάλε πιονιών, όποιος βασιλιάς <b>δεν</b> είναι υποχρεωμένος να κουνηθεί όταν οι βασιλιάδες είναι αντικριστά (με ένα κενό τετράγωνο) «κερδίζει έδαφος». Κλειδί για να περάσεις πιόνι.</p></div>
+        <div class="card"><h3>Κανόνας του τετραγώνου</h3>
+          <p>Για να δεις αν ένας μόνος βασιλιάς προλαβαίνει ένα ελεύθερο πιόνι: φαντάσου το τετράγωνο από το πιόνι μέχρι την προαγωγή. Αν ο βασιλιάς μπορεί να μπει σε αυτό το τετράγωνο, το πιάνει· αλλιώς το πιόνι προάγεται.</p></div>
+        <div class="card"><h3>Θέση Lucena (πύργου)</h3>
+          <p>Η «νικηφόρα» θέση σε φινάλε πύργου+πιονιού. Τεχνική «χτίσε γέφυρα»: ο πύργος σου φτιάχνει ασπίδα ώστε ο βασιλιάς σου να ξεφύγει από τα σαχ και το πιόνι να προαχθεί.</p></div>
+        <div class="card"><h3>Θέση Philidor (άμυνα)</h3>
+          <p>Η «ισοπαλία-κλειδί» για την αδύναμη πλευρά: κράτα τον πύργο σου στην 3η οριζόντια για να εμποδίζεις τον εχθρικό βασιλιά· μόλις προχωρήσει το πιόνι, πήγαινε πίσω και δώσε συνεχή σαχ.</p></div>
+      </div>
+    </div>
+
+    <!-- Στρατηγική -->
+    <div class="sub" id="sub-c-strat">
+      <div class="grid2">
+        <div class="card"><h2>Αρχές ανοίγματος</h2>
+          <ul class="clean">
+            <li>1️⃣ <b>Έλεγξε το κέντρο</b> (e4/d4/e5/d5) — δίνει χώρο και κινητικότητα.</li>
+            <li>2️⃣ <b>Ανάπτυξε</b> ίππους και αξιωματικούς νωρίς· μην κινείς το ίδιο κομμάτι δύο φορές χωρίς λόγο.</li>
+            <li>3️⃣ <b>Ροκέ γρήγορα</b> — ασφάλισε τον βασιλιά.</li>
+            <li>4️⃣ Μη βγάζεις τη βασίλισσα πολύ νωρίς (κυνηγιέται).</li>
+            <li>5️⃣ Σύνδεσε τους πύργους σε ανοιχτές στήλες.</li>
+          </ul>
+        </div>
+        <div class="card"><h2>Τακτικά μοτίβα (τα «όπλα»)</h2>
+          <ul class="clean">
+            <li><b>Πιρούνι (fork):</b> ένα κομμάτι απειλεί δύο.</li>
+            <li><b>Καρφί (pin):</b> ακινητοποιείς κομμάτι μπρος στον βασιλιά/βασίλισσα.</li>
+            <li><b>Σουβλιά (skewer):</b> αναγκάζεις πολύτιμο κομμάτι να φύγει και παίρνεις το πίσω.</li>
+            <li><b>Ανακαλυπτόμενο σαχ:</b> κινείς κομμάτι κι αποκαλύπτεις σαχ.</li>
+            <li><b>Υπερφόρτωση/απόσπαση:</b> αναγκάζεις αμυντικό κομμάτι να φύγει από τη θέση του.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card"><h2>Μέσο παιχνίδι &amp; θέση</h2>
+        <div class="grid3">
+          <div><h3>Δομή πιονιών</h3><p>Απόφυγε απομονωμένα/διπλά πιόνια χωρίς αντάλλαγμα. Τα περασμένα πιόνια είναι δύναμη στο φινάλε.</p></div>
+          <div><h3>Καλά τετράγωνα</h3><p>Τοποθέτησε ίππους σε «φωλιές» (outposts) που δεν διώχνονται από εχθρικά πιόνια.</p></div>
+          <div><h3>Ανοιχτές στήλες</h3><p>Οι πύργοι θέλουν ανοιχτές/ημι-ανοιχτές στήλες. Η 7η οριζόντια είναι χρυσωρυχείο.</p></div>
+        </div>
+        <div class="callout">Πρακτικός κανόνας πριν από κάθε κίνηση: «Τι απειλεί ο αντίπαλος; Ποιο είναι το χειρότερο κομμάτι μου; Υπάρχει τακτική;»</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAVLI ============ -->
+  <section class="view" id="view-tavli">
+    <div class="subnav" id="tavli-subnav">
+      <button data-sub="t-rules" class="active">Κανόνες</button>
+      <button data-sub="t-play">Παίξε</button>
+      <button data-sub="t-open">Ζαριές ανοίγματος</button>
+      <button data-sub="t-strat">Στρατηγική</button>
+      <button data-sub="t-odds">Πιθανότητες</button>
+      <button data-sub="t-cube">Doubling Cube</button>
+    </div>
+
+    <div class="sub active" id="sub-t-rules">
+      <div class="card">
+        <h2>🎲 Τα είδη τάβλι</h2>
+        <p>Στο ελληνικό τάβλι παίζονται συνήθως τρία παιχνίδια σε σειρά (match): <b>Πόρτες</b>, <b>Πλακωτό</b>, <b>Φεύγα</b>. Ίδιο ταμπλό, διαφορετικοί κανόνες. Ένας ολοκληρωμένος παίκτης τα ξέρει και τα τρία.</p>
+      </div>
+      <div id="tavli-rules-cards"></div>
+    </div>
+
+    <div class="sub" id="sub-t-play">
+      <div class="card">
+        <h2>Διαδραστικό ταμπλό — εξάσκηση</h2>
+        <div class="btn-row">
+          <span>Παραλλαγή:</span>
+          <select id="tavli-variant"><option value="portes">Πόρτες</option><option value="plakoto">Πλακωτό</option><option value="fevga">Φεύγα</option><option value="asodyo">Ασσόδυο</option></select>
+          <button class="btn" id="tavli-reset">↺ Νέο</button>
+          <button class="btn gold" id="tavli-bearoff">Μάζεμα ▸</button>
+        </div>
+        <div class="btn-row">
+          <label class="ck" style="margin:0"><input type="checkbox" id="tavli-vs"> Παίξε εναντίον υπολογιστή</label>
+          <label class="ck" style="margin:0">Ο υπολογιστής παίζει:
+            <select id="tavli-aiside"><option value="b">Μαύρα</option><option value="w">Λευκά</option></select>
+          </label>
+          <span class="cube-inline" title="Ζάρι διπλασιασμού — κλικ για ×2">
+            <span style="color:var(--muted)">Cube:</span>
+            <span class="cube mini" id="tavli-cube">1</span>
+          </span>
+        </div>
+        <div class="status-line" id="tavli-info"></div>
+        <div class="pip-meter" id="tavli-pip"></div>
+        <div id="tavli-board"></div>
+        <div class="callout">Πάτα <b>🎲 Ρίξε ζάρια</b>, μετά κλικ σε δικό σου πούλι και μετά στη θέση προορισμού (απόσταση = ζάρι). «Ντόρτια» = 4 κινήσεις. Όταν όλα τα πούλια σου φτάσουν στην οικία, πάτα «Μάζεμα». <em>Πλήρεις κανόνες στην καρτέλα «Κανόνες».</em></div>
+      </div>
+    </div>
+
+    <div class="sub" id="sub-t-open">
+      <div class="card">
+        <h2>Πόρτες — Καλύτερες ζαριές ανοίγματος</h2>
+        <p>Στο άνοιγμα, στόχος είναι να <b>φτιάχνεις πόρτες</b> (ειδικά του 5 και του 7) και να τοποθετείς «άγκυρες». Σημειογραφία: <span class="kbd">από/προς</span> με θέσεις 24→1.</p>
+        <table class="data" id="tavli-open-table"></table>
+      </div>
+    </div>
+
+    <div class="sub" id="sub-t-strat">
+      <div id="tavli-strat-cards"></div>
+      <div class="card">
+        <h2>Doubling cube (επίσημο backgammon)</h2>
+        <p>Το ζάρι διπλασιασμού ανεβάζει το πονταρίσμα. Γενικός κανόνας: <b>διπλασίασε</b> όταν προηγείσαι ~8–10% στο pip count σε καθαρή κούρσα. <b>Δέξου</b> το διπλασιασμό αν οι πιθανότητές σου να κερδίσεις είναι &gt;25% (κανόνας του «take point»).</p>
+      </div>
+    </div>
+
+    <div class="sub" id="sub-t-odds">
+      <div class="card">
+        <h2>Πιθανότητες ζαριών</h2>
+        <p>Δύο ζάρια = <b>36</b> συνδυασμοί. Ο παρακάτω πίνακας δείχνει πόσοι φέρνουν κάθε απόσταση — χρήσιμο για να ξέρεις πόσο ασφαλές είναι ένα πλακί ή πόσο πιθανό ένα χτύπημα.</p>
+        <div class="grid2">
+          <table class="data" id="odds-table"></table>
+          <div>
+            <div class="card" style="margin:0;">
+              <h3>Υπολογιστής χτυπήματος</h3>
+              <p>Απόσταση πλακιού από το πούλι σου:
+                <select id="odds-dist"></select></p>
+              <div class="status-line" id="odds-result"></div>
+              <p style="color:var(--muted);font-size:.85rem;">Οι αριθμοί 1–6 περιλαμβάνουν και συνδυασμούς (π.χ. το 4 βγαίνει με 3+1, 1+3, 2+2 και σκέτα 4). Το 6 είναι το πιο πιθανό (17/36). Πάνω από 6 χρειάζεσαι συνδυασμό — και θέλει ελεύθερο ενδιάμεσο σημείο.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub" id="sub-t-cube">
+      <div class="card">
+        <h2>🎲 Doubling Cube — Προπονητής αποφάσεων</h2>
+        <p>Το ζάρι διπλασιασμού είναι το πιο δύσκολο κομμάτι του επίσημου backgammon. Σε κάθε σενάριο, πάρε τη σωστή απόφαση.</p>
+        <div class="cube-row">
+          <div class="cube" id="dc-cube">2</div>
+          <div style="flex:1 1 300px">
+            <div class="status-line" id="dc-scenario">—</div>
+            <div class="dc-choices" id="dc-choices"></div>
+            <div class="callout dc-feedback" id="dc-feedback" style="display:none"></div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="dc-next">Επόμενο σενάριο ▸</button>
+          <span id="dc-score" style="color:var(--muted)"></span>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Οι δύο κανόνες-κλειδιά</h2>
+        <div class="grid2">
+          <div><h3>Πότε ΔΙΠΛΑΣΙΑΖΩ;</h3><p>Όταν προηγείσαι ~<b>8–12%</b> στο pip count (καθαρή κούρσα). Πολύ λίγο = τζάμπα δώρο· πάρα πολύ μπροστά = «too good» (παίξε για gammon, μη διπλασιάσεις).</p></div>
+          <div><h3>Πότε ΔΕΧΟΜΑΙ (take);</h3><p>Όταν κερδίζεις πάνω από ~<b>25%</b> των φορών (το «take point»). Κάτω από αυτό → Pass και χάνεις μόνο 1 πόντο αντί να ρισκάρεις 2-4.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ROADMAP ============ -->
+  <section class="view" id="view-roadmap">
+    <div class="card">
+      <h2>🎯 Το πλάνο σου προς επαγγελματικό επίπεδο</h2>
+      <p>Δομημένη διαδρομή για Σκάκι &amp; Τάβλι. Τσέκαρε ό,τι κατακτάς — η πρόοδος αποθηκεύεται στον υπολογιστή σου.</p>
+      <div class="progress-bar"><i id="road-progress"></i></div>
+      <p id="road-progress-text" style="color:var(--muted);margin-top:8px;"></p>
+      <div class="btn-row"><button class="btn" id="road-reset">Μηδένισε πρόοδο</button></div>
+    </div>
+    <div id="roadmap-phases"></div>
+  </section>
+
+  <!-- ============ GLOSSARY ============ -->
+  <section class="view" id="view-glossary">
+    <div class="card"><h2>📖 Γλωσσάρι όρων</h2><p>Οι βασικοί όροι που πρέπει να ξέρεις.</p></div>
+    <div id="glossary-content"></div>
+  </section>
+</main>
+
+<footer>
+  Σκάκι &amp; Τάβλι 360° · Offline εφαρμογή εκπαίδευσης · Παίζει τοπικά στον browser σου.
+</footer>
+
+<script src="js/sfx.js"></script>
+<script src="js/pieces.js"></script>
+<script src="js/chess-engine.js"></script>
+<script src="js/chess-ui.js"></script>
+<script src="js/content.js"></script>
+<script src="js/tavli.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
