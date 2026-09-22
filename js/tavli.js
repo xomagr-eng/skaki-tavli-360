@@ -67,12 +67,14 @@
     let aiSide = opts.aiSide || "b";
     let aiLevel = opts.aiLevel || 2;   // 1=Εύκολος, 2=Μέτριος, 3=Δυνατός
     let aiBusy = false;
-    let drag = null, lastDrop = 0;
+    let drag = null, lastDrop = 0, locked = false;
     let destSet = new Set(), bearSet = new Set(), movSet = new Set();
     let movBar = false;
     let hasRolled = false;      // έχει ρίξει ζάρια σε αυτή τη σειρά;
     let aceyStage = null;       // null | 'need_double' | 'need_reroll' (Ασσόδυο 1-2)
     const onInfo = opts.onInfo || function () {};
+    const onTurn = opts.onTurn || function () {};
+    const onWin = opts.onWin || function () {};
 
     const boardWrap = document.createElement("div"); boardWrap.className = "bg-wrap";
     const boardEl = document.createElement("div"); boardEl.className = "bg-board";
@@ -86,9 +88,10 @@
       points = STARTS[variant]();
       bar = BARSTART(variant) ? { w:15, b:15 } : { w:0, b:0 };
       off = { w:0, b:0 }; pins = {};
-      turn = "w"; dice = []; selected = null; aiBusy = false;
+      turn = "w"; dice = []; selected = null; aiBusy = false; locked = false;
       hasRolled = false; aceyStage = null;
       render(); renderDice();
+      onTurn("w", null);
       info(`Παραλλαγή: ${variant.toUpperCase()}. Ρίξε ζάρια για να ξεκινήσεις. Σειρά: Λευκά.`);
       maybeAI();
     }
@@ -212,6 +215,7 @@
 
     // ---------- ΖΑΡΙΑ ----------
     function roll() {
+      if (locked) return;
       const d6 = () => 1 + Math.floor(Math.random() * 6);
       const who = turn === "w" ? "Λευκά" : "Μαύρα";
       hasRolled = true; aceyStage = null; selected = null;
@@ -295,7 +299,9 @@
     }
 
     function endTurn() {
+      const prev = turn;
       turn = other(turn); dice = []; selected = null; hasRolled = false; aceyStage = null; render(); renderDice();
+      onTurn(turn, prev);
       if (off.w === 15) return info("🏆 Νίκη Λευκών! Μάζεψαν και τα 15 πούλια.");
       if (off.b === 15) return info("🏆 Νίκη Μαύρων! Μάζεψαν και τα 15 πούλια.");
       info(`Σειρά: ${turn==="w"?"Λευκά":"Μαύρα"}. ${isHumanTurn()?"Ρίξε ζάρια.":""}`);
@@ -306,7 +312,7 @@
 
     // ---------- ΚΙΝΗΣΗ (core) ----------
     function onPointClick(idx) {
-      if (!isHumanTurn()) return;
+      if (locked || !isHumanTurn()) return;
       if (Date.now() - lastDrop < 250) return; // απορρόφησε το click μετά από drag
       if (!dice.length) { info("Ρίξε πρώτα ζάρια."); return; }
       if (bar[turn] > 0 && selected !== "bar") { info("Έχεις πούλι στη μπάρα — κάνε κλικ στη μπάρα για είσοδο."); selected = "bar"; render(); return; }
@@ -408,7 +414,7 @@
     function chkSize() { const c = boardEl.querySelector(".checker"); return c ? c.getBoundingClientRect().width : 30; }
     function moveGhost(e) { if (!drag) return; const s = chkSize(); drag.ghost.style.left = (e.clientX - s / 2) + "px"; drag.ghost.style.top = (e.clientY - s / 2) + "px"; }
     boardEl.addEventListener("pointerdown", (e) => {
-      if (!isHumanTurn() || !dice.length) return;
+      if (locked || !isHumanTurn() || !dice.length) return;
       let from;
       if (e.target.closest(".bg-bar")) { if (bar[turn] > 0) from = "bar"; }
       else { const pt = e.target.closest(".point"); if (pt) { const idx = +pt.dataset.idx; if (points[idx][turn] > 0 && pins[idx] !== turn) from = idx; } }
@@ -474,7 +480,7 @@
       if (!silent) info("Κανένα ζάρι δεν ταιριάζει για μάζεμα.");
       return false;
     }
-    function win(c) { info(`🏆 Νίκη ${c==="w"?"Λευκών":"Μαύρων"}! Μάζεψαν και τα 15 πούλια.`); }
+    function win(c) { locked = true; info(`🏆 Νίκη ${c==="w"?"Λευκών":"Μαύρων"}! Μάζεψαν και τα 15 πούλια.`); onWin(c); }
 
     // ---------- AI ----------
     function enumerateMoves(color) {
@@ -531,8 +537,53 @@
       const jitter = aiLevel === 1 ? Math.random() * 45 : aiLevel === 2 ? Math.random() * 3 : 0;
       return s + jitter;
     }
+
+    // ---- Επίπεδο «Πρωταθλητής»: αξιολόγηση ΟΛΗΣ της θέσης (pip + δομή + κίνδυνος) ----
+    const SHOTS = { 1: 11, 2: 12, 3: 14, 4: 15, 5: 15, 6: 17 };
+    function cloneState() {
+      return { points: points.map(c => ({ w: c.w, b: c.b })), bar: { w: bar.w, b: bar.b }, pins: Object.assign({}, pins) };
+    }
+    function simLand(S, color, from, toIdx) {
+      const opp = other(color), dest = S.points[toIdx];
+      if (PORTESLIKE(variant)) { if (dest[opp] === 1) { dest[opp] = 0; S.bar[opp]++; } }
+      else if (PLAKOTOLIKE(variant)) { if (S.pins[toIdx] !== color && dest[opp] === 1) { S.pins[toIdx] = opp; dest[opp] = 0; } }
+      if (from === "bar") S.bar[color]--;
+      else {
+        S.points[from][color]--;
+        if (PLAKOTOLIKE(variant) && S.points[from][color] === 0 && S.pins[from] && S.pins[from] !== color) { S.points[from][S.pins[from]] = 1; delete S.pins[from]; }
+      }
+      S.points[toIdx][color]++;
+    }
+    function pipS(S, c) {
+      const pth = path(c); let t = S.bar[c] * 25;
+      for (let i = 0; i < 24; i++) { let n = S.points[i][c]; if (S.pins[i] === c) n += 1; if (n > 0) t += n * (24 - pth.indexOf(i)); }
+      return t;
+    }
+    function hitWaysS(S, idx, color) {
+      const opp = other(color), opth = path(opp), tpos = opth.indexOf(idx);
+      if (tpos < 0) return 0;
+      let ways = 0;
+      for (let d = 1; d <= 6; d++) { const fp = tpos - d; if (fp >= 0 && S.points[opth[fp]][opp] > 0) ways += SHOTS[d]; }
+      return Math.min(ways, 24);
+    }
+    function evalState(S, color) {
+      const opp = other(color);
+      let s = pipS(S, opp) - pipS(S, color); // προβάδισμα στην κούρσα
+      for (let i = 0; i < 24; i++) {
+        const n = S.points[i][color];
+        if (n >= 2) s += 4;                               // φτιαγμένη πόρτα
+        if (n === 1 && S.pins[i] !== color && PORTESLIKE(variant)) s -= hitWaysS(S, i, color) * 0.5; // εκτεθειμένο πλακί (προεπισκόπηση χτυπήματος)
+        if (S.pins[i] === opp) s += 12;                   // πλακωμένο/φυλακισμένο αντιπάλου
+      }
+      return s;
+    }
+    function scoreMoveChampion(mv) {
+      const S = cloneState();
+      simLand(S, turn, mv.from, mv.toIdx);
+      return evalState(S, turn);
+    }
     function maybeAI() {
-      if (!vsComputer || turn !== aiSide || aiBusy) return;
+      if (locked || !vsComputer || turn !== aiSide || aiBusy) return;
       if (off.w === 15 || off.b === 15) return;
       aiBusy = true;
       renderDice();
@@ -555,7 +606,10 @@
       if (moves.length) {
         let best;
         if (aiLevel === 1 && Math.random() < 0.5) best = moves[Math.floor(Math.random() * moves.length)];
-        else { moves.sort((a, b) => scoreMove(b) - scoreMove(a)); best = moves[0]; }
+        else {
+          const scorer = aiLevel === 4 ? scoreMoveChampion : scoreMove;
+          moves.sort((a, b) => scorer(b) - scorer(a)); best = moves[0];
+        }
         const fr = topCheckerRect(best.from);
         applyMove(best.from, best.toIdx);
         render(); renderDice();
@@ -585,6 +639,7 @@
       setVs: (v) => { vsComputer = !!v; reset(); },
       setAiSide: (c) => { aiSide = c; reset(); },
       setAiLevel: (n) => { aiLevel = n; },
+      setLocked: (v) => { locked = !!v; },
       getInfo: () => ({ turn, variant, off, bar }),
     };
   }

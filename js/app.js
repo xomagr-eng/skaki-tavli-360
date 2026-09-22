@@ -301,11 +301,56 @@
   //  ΤΑΒΛΙ
   // ======================================================
   let tavli = null;
+
+  // ---- Χρονόμετρο τάβλι ----
+  const tclock = { enabled: false, base: 0, inc: 0, w: 0, b: 0, active: null, timer: null, last: 0, flagged: false };
+  function trender() {
+    const cw = $("#tclock-w"); if (!cw) return;
+    $("#tclock-w-t").textContent = tclock.enabled ? fmtClock(tclock.w) : "--:--";
+    $("#tclock-b-t").textContent = tclock.enabled ? fmtClock(tclock.b) : "--:--";
+    cw.classList.toggle("active", tclock.active === "w");
+    $("#tclock-b").classList.toggle("active", tclock.active === "b");
+    cw.classList.toggle("low", tclock.enabled && tclock.w < 20);
+    $("#tclock-b").classList.toggle("low", tclock.enabled && tclock.b < 20);
+  }
+  function tstop() { if (tclock.timer) { clearInterval(tclock.timer); tclock.timer = null; } tclock.active = null; trender(); }
+  function ttick() {
+    if (!tclock.timer) return;
+    const now = performance.now(), dt = (now - tclock.last) / 1000; tclock.last = now;
+    if (tclock.active && !tclock.flagged) { tclock[tclock.active] -= dt; if (tclock[tclock.active] <= 0) { tclock[tclock.active] = 0; tflag(tclock.active); return; } }
+    trender();
+  }
+  function trun(side) { tclock.active = side; tclock.last = performance.now(); if (!tclock.timer) tclock.timer = setInterval(ttick, 100); trender(); }
+  function tflag(side) {
+    tstop(); tclock.flagged = true;
+    $("#tclock-" + side).classList.add("flag");
+    if (tavli) tavli.setLocked(true);
+    $("#tavli-info").textContent = `⏱️ ${side === "w" ? "Λευκά" : "Μαύρα"} έχασαν στον χρόνο — νίκη ${side === "w" ? "Μαύρων" : "Λευκών"}! 🏆`;
+  }
+  function tapplySelect() {
+    const tc = parseTC($("#tavli-clock").value);
+    if (!tc) { tclock.enabled = false; tstop(); if ($("#tavli-clocks")) $("#tavli-clocks").style.display = "none"; return; }
+    tclock.enabled = true; tclock.base = tc.base; tclock.inc = tc.inc;
+  }
+  function tclockOnTurn(turnC, prevC) {
+    if (!tclock.enabled) { if ($("#tavli-clocks")) $("#tavli-clocks").style.display = "none"; return; }
+    $("#tavli-clocks").style.display = "flex";
+    if (prevC === null) {
+      tclock.flagged = false; $("#tclock-w").classList.remove("flag"); $("#tclock-b").classList.remove("flag");
+      tclock.w = tclock.base; tclock.b = tclock.base; trun(turnC); return;
+    }
+    if (tclock.flagged) return;
+    tclock[prevC] += tclock.inc;
+    trun(turnC);
+  }
+
   function initTavli() {
     if (tavli) return;
     tavli = createTavli($("#tavli-board"), {
       variant: $("#tavli-variant").value,
       onInfo: (msg) => { $("#tavli-info").textContent = msg; },
+      onTurn: (turnC, prevC) => tclockOnTurn(turnC, prevC),
+      onWin: () => tstop(),
       onPips: (w, b, turn) => {
         const diff = Math.abs(w - b);
         const lead = w < b ? "Λευκά" : "Μαύρα";
@@ -329,6 +374,7 @@
     $("#tavli-aiside").addEventListener("change", () => { if ($("#tavli-vs").checked) tavli.setAiSide($("#tavli-aiside").value); });
     tavli.setAiLevel(parseInt($("#tavli-ailevel").value, 10));
     $("#tavli-ailevel").addEventListener("change", () => tavli.setAiLevel(parseInt($("#tavli-ailevel").value, 10)));
+    $("#tavli-clock").addEventListener("change", () => { tapplySelect(); tavli.reset(); setCube(1); });
   }
 
   // Κανόνες τάβλι (cards)

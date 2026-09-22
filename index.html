@@ -359,12 +359,28 @@
             <select id="tavli-aiside"><option value="b">Μαύρα</option><option value="w">Λευκά</option></select>
           </label>
           <label class="ck" style="margin:0">Δυσκολία AI:
-            <select id="tavli-ailevel"><option value="1">Εύκολος</option><option value="2" selected>Μέτριος</option><option value="3">Δυνατός</option></select>
+            <select id="tavli-ailevel"><option value="1">Εύκολος</option><option value="2" selected>Μέτριος</option><option value="3">Δυνατός</option><option value="4">Πρωταθλητής</option></select>
           </label>
           <span class="cube-inline" title="Ζάρι διπλασιασμού — κλικ για ×2">
             <span style="color:var(--muted)">Cube:</span>
             <span class="cube mini" id="tavli-cube">1</span>
           </span>
+        </div>
+        <div class="btn-row">
+          <label class="ck" style="margin:0">⏱️ Χρονόμετρο (ματς):
+            <select id="tavli-clock">
+              <option value="off">Χωρίς χρόνο</option>
+              <option value="180+0">3 λεπτά</option>
+              <option value="300+0">5 λεπτά</option>
+              <option value="300+5">5 λεπτά +5΄΄</option>
+              <option value="600+0">10 λεπτά</option>
+              <option value="900+10">15 λεπτά +10΄΄</option>
+            </select>
+          </label>
+          <div class="chess-clocks" id="tavli-clocks" style="display:none;margin:0;flex:1 1 240px">
+            <div class="clock" id="tclock-w"><span class="lbl">⚪ Λευκά</span><span class="t" id="tclock-w-t">--:--</span></div>
+            <div class="clock" id="tclock-b"><span class="lbl">⚫ Μαύρα</span><span class="t" id="tclock-b-t">--:--</span></div>
+          </div>
         </div>
         <div class="status-line" id="tavli-info"></div>
         <div class="pip-meter" id="tavli-pip"></div>
