@@ -74,6 +74,7 @@
     line.textContent = `⏱️ ${side === "w" ? "Λευκά" : "Μαύρα"} έχασαν στον χρόνο — νίκη ${side === "w" ? "Μαύρων" : "Λευκών"}! 🏆`;
     line.className = "status-line win";
     if (playBoard) playBoard.setInteractive(false);
+    recordChess(side === "w" ? "b" : "w", "Χρόνος");
   }
   function startClockGame() {
     const tc = parseTC($("#play-clock") ? $("#play-clock").value : "off");
@@ -90,6 +91,25 @@
     const moved = newTurn === "w" ? "b" : "w";
     clock[moved] += clock.inc;
     runClock(newTurn);
+  }
+
+  // ---------------- Ιστορικό παρτίδων σκακιού ----------------
+  let chessHistory = [], chessRecorded = false;
+  function renderChessHistory() {
+    const el = $("#chess-history"); if (!el) return;
+    el.innerHTML = chessHistory.map((g, i) => {
+      let who, cls;
+      if (g.winner === "w") { who = "⚪ Λευκά"; cls = "w"; }
+      else if (g.winner === "b") { who = "⚫ Μαύρα"; cls = "b"; }
+      else { who = "Ισοπαλία"; cls = "draw"; }
+      return `<div class="hist-item"><span>Παρτίδα ${i + 1}: <span class="who ${cls}">${who}</span></span><span class="det">${g.reason}</span></div>`;
+    }).join("");
+  }
+  function recordChess(winner, reason) {
+    if (chessRecorded) return;
+    chessRecorded = true;
+    chessHistory.push({ winner, reason });
+    renderChessHistory();
   }
   function statusText(st, turn) {
     const who = turn === "w" ? "Λευκά" : "Μαύρα";
@@ -139,6 +159,7 @@
   }
   function newGame() {
     playMovesArr = [];
+    chessRecorded = false;
     renderPlayMoves();
     playBoard.setFEN(Chess.START_FEN);
     const human = $("#play-side").value;
@@ -156,10 +177,17 @@
         updatePlayStatus();
         const terminal = st === "checkmate" || st === "stalemate" || st === "draw50" || st === "insufficient";
         clockOnMove(state.turn, terminal);
+        if (terminal) {
+          if (st === "checkmate") recordChess(state.turn === "w" ? "b" : "w", "Ματ");
+          else if (st === "stalemate") recordChess(null, "Πατ");
+          else if (st === "draw50") recordChess(null, "Κανόνας 50 κινήσεων");
+          else recordChess(null, "Ανεπαρκές υλικό");
+        }
         maybeAIMove();
       },
     });
     $("#play-clock").addEventListener("change", newGame);
+    $("#chess-hist-clear").addEventListener("click", () => { chessHistory = []; renderChessHistory(); });
     $("#play-new").addEventListener("click", newGame);
     $("#play-flip").addEventListener("click", () => playBoard.flip());
     $("#play-undo").addEventListener("click", () => {
@@ -360,6 +388,15 @@
       const d = document.createElement("button"); d.className = "btn primary"; d.textContent = "⧉ Διπλασιασμός ×" + c.proposed;
       d.onclick = () => tavli.double();
       act.appendChild(d);
+    }
+    const hist = $("#tavli-history");
+    if (hist) {
+      const h = c.history || [];
+      hist.innerHTML = h.map((g, i) => {
+        const who = g.winner === "w" ? '<span class="who w">⚪ Λευκά</span>' : '<span class="who b">⚫ Μαύρα</span>';
+        const r = g.reason === "pass" ? "pass" : g.reason === "gammon" ? "γκάμον ×2" : "μάζεμα";
+        return `<div class="hist-item"><span>Παιχνίδι ${i + 1}: ${who}</span><span class="det">+${g.points} (${r})</span></div>`;
+      }).join("");
     }
   }
 

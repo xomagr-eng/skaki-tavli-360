@@ -566,3 +566,14 @@ body[data-checkers="marble"] { --chk-w-hi:#ffffff; --chk-w-lo:#c8c8d0; --chk-b-h
 .clock.low .t { color: var(--red2); }
 .clock.flag { border-color: var(--red2); }
 .clock.flag .t { color: var(--red2); }
+
+/* ---- Ιστορικό παρτίδων/ματς ---- */
+.match-history { display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow: auto; margin: 6px 0; }
+.match-history:empty { display: none; }
+.hist-item { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 4px 10px; font-size: .85rem; display: flex; justify-content: space-between; gap: 8px; }
+.hist-item .who { font-weight: 600; }
+.hist-item .who.w { color: var(--gold2); }
+.hist-item .who.b { color: var(--muted); }
+.hist-item .who.draw { color: var(--muted); }
+.hist-item .det { color: var(--muted); }

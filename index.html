@@ -219,6 +219,11 @@
             </div>
             <h3 style="margin-bottom:4px;">Κινήσεις</h3>
             <div class="movelist" id="play-moves"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+              <h3 style="margin:0">Ιστορικό παρτίδων</h3>
+              <button class="btn" id="chess-hist-clear" style="padding:3px 9px;font-size:.8rem">Καθάρισε</button>
+            </div>
+            <div class="match-history" id="chess-history"></div>
           </div>
         </div>
       </div>
@@ -374,6 +379,7 @@
             <button class="btn" id="tavli-newmatch">Νέο ματς</button>
           </span>
         </div>
+        <div class="match-history" id="tavli-history"></div>
         <div class="btn-row">
           <label class="ck" style="margin:0">⏱️ Χρονόμετρο (ματς):
             <select id="tavli-clock">

@@ -71,6 +71,7 @@
     let destSet = new Set(), bearSet = new Set(), movSet = new Set();
     let cubeValue = 1, cubeOwner = null, pendingDouble = null; // owner null=κέντρο
     let score = { w: 0, b: 0 }, target = opts.target || 7, matchOver = false;
+    let history = []; // {winner, points, reason} ανά παιχνίδι του ματς
     let movBar = false;
     let hasRolled = false;      // έχει ρίξει ζάρια σε αυτή τη σειρά;
     let aceyStage = null;       // null | 'need_double' | 'need_reroll' (Ασσόδυο 1-2)
@@ -503,7 +504,7 @@
       const humanResponder = pendingDouble && !(vsComputer && responder === aiSide);
       onCube({
         value: cubeValue, owner: cubeOwner, proposed: cubeValue * 2,
-        scoreW: score.w, scoreB: score.b, target, matchOver,
+        scoreW: score.w, scoreB: score.b, target, matchOver, history: history,
         canDouble: !pendingDouble && !locked && !hasRolled && dice.length === 0 &&
           isHumanTurn() && (cubeOwner === null || cubeOwner === turn) && cubeValue < 64,
         awaitingHuman: !!humanResponder,
@@ -545,6 +546,7 @@
     function resumeAiTurn() { aiBusy = true; renderDice(); setTimeout(() => { roll(); setTimeout(aiStep, 650); }, 450); }
     function gameEnd(winner, points, reason) {
       score[winner] += points; locked = true;
+      history.push({ winner, points, reason });
       if (score[winner] >= target) {
         matchOver = true;
         info(`🏆 ΝΙΚΗ ΜΑΤΣ ${winner === "w" ? "Λευκών" : "Μαύρων"}! Τελικό σκορ ${score.w}-${score.b}.`);
@@ -554,7 +556,7 @@
       }
       render(); renderDice(); onWin(winner);
     }
-    function newMatch(t) { if (t) target = t; score = { w: 0, b: 0 }; matchOver = false; reset(); }
+    function newMatch(t) { if (t) target = t; score = { w: 0, b: 0 }; matchOver = false; history = []; reset(); }
 
     // ---------- AI ----------
     function enumerateMoves(color) {
