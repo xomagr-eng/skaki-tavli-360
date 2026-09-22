@@ -36,6 +36,61 @@
   // ======================================================
   let playBoard = null;
   let playMovesArr = [];
+
+  // ---------------- Σκακιστικό ρολόι ----------------
+  const clock = { enabled: false, base: 0, inc: 0, w: 0, b: 0, active: null, timer: null, last: 0, flagged: false };
+  function parseTC(v) { if (!v || v === "off") return null; const p = v.split("+").map(Number); return { base: p[0], inc: p[1] || 0 }; }
+  function fmtClock(sec) {
+    sec = Math.max(0, sec);
+    const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    const base = m + ":" + String(s).padStart(2, "0");
+    return sec < 20 ? base + "." + Math.floor((sec * 10) % 10) : base;
+  }
+  function renderClock() {
+    const cw = $("#clock-w"), cb = $("#clock-b");
+    if (!cw) return;
+    $("#clock-w-t").textContent = clock.enabled ? fmtClock(clock.w) : "--:--";
+    $("#clock-b-t").textContent = clock.enabled ? fmtClock(clock.b) : "--:--";
+    cw.classList.toggle("active", clock.active === "w");
+    cb.classList.toggle("active", clock.active === "b");
+    cw.classList.toggle("low", clock.enabled && clock.w < 20);
+    cb.classList.toggle("low", clock.enabled && clock.b < 20);
+  }
+  function stopClock() { if (clock.timer) { clearInterval(clock.timer); clock.timer = null; } clock.active = null; renderClock(); }
+  function tickLoop() {
+    if (!clock.timer) return;
+    const now = performance.now(), dt = (now - clock.last) / 1000; clock.last = now;
+    if (clock.active && !clock.flagged) {
+      clock[clock.active] -= dt;
+      if (clock[clock.active] <= 0) { clock[clock.active] = 0; onFlag(clock.active); return; }
+    }
+    renderClock();
+  }
+  function runClock(side) { clock.active = side; clock.last = performance.now(); if (!clock.timer) clock.timer = setInterval(tickLoop, 100); renderClock(); }
+  function onFlag(side) {
+    stopClock(); clock.flagged = true;
+    $("#clock-" + side).classList.add("flag");
+    const line = $("#play-status");
+    line.textContent = `⏱️ ${side === "w" ? "Λευκά" : "Μαύρα"} έχασαν στον χρόνο — νίκη ${side === "w" ? "Μαύρων" : "Λευκών"}! 🏆`;
+    line.className = "status-line win";
+    if (playBoard) playBoard.setInteractive(false);
+  }
+  function startClockGame() {
+    const tc = parseTC($("#play-clock") ? $("#play-clock").value : "off");
+    clock.flagged = false;
+    if ($("#clock-w")) { $("#clock-w").classList.remove("flag"); $("#clock-b").classList.remove("flag"); }
+    if (!tc) { clock.enabled = false; stopClock(); if ($("#chess-clocks")) $("#chess-clocks").style.display = "none"; return; }
+    clock.enabled = true; clock.base = tc.base; clock.inc = tc.inc; clock.w = tc.base; clock.b = tc.base;
+    $("#chess-clocks").style.display = "flex";
+    runClock(playBoard.turn());
+  }
+  function clockOnMove(newTurn, terminal) {
+    if (!clock.enabled || clock.flagged) return;
+    if (terminal) { stopClock(); return; }
+    const moved = newTurn === "w" ? "b" : "w";
+    clock[moved] += clock.inc;
+    runClock(newTurn);
+  }
   function statusText(st, turn) {
     const who = turn === "w" ? "Λευκά" : "Μαύρα";
     switch (st) {
@@ -68,6 +123,7 @@
     $("#play-undo").disabled = !playBoard.canUndo();
   }
   function maybeAIMove() {
+    if (clock.flagged) return;
     if (!$("#play-vs").checked) return;
     const human = $("#play-side").value;
     const s = playBoard.getState();
@@ -88,18 +144,22 @@
     const human = $("#play-side").value;
     playBoard.setFlipped(human === "b");
     updatePlayStatus();
+    startClockGame();
     maybeAIMove();
   }
   function initPlay() {
     if (playBoard) return;
     playBoard = createBoard($("#play-board"), {
-      onMove: (state, move, san) => {
+      onMove: (state, move, san, st) => {
         playMovesArr.push(san);
         renderPlayMoves();
         updatePlayStatus();
+        const terminal = st === "checkmate" || st === "stalemate" || st === "draw50" || st === "insufficient";
+        clockOnMove(state.turn, terminal);
         maybeAIMove();
       },
     });
+    $("#play-clock").addEventListener("change", newGame);
     $("#play-new").addEventListener("click", newGame);
     $("#play-flip").addEventListener("click", () => playBoard.flip());
     $("#play-undo").addEventListener("click", () => {

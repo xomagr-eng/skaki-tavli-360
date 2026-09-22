@@ -201,6 +201,22 @@
                 <option value="3">Δυνατός</option>
               </select>
             </label>
+            <label class="ck">⏱️ Χρονόμετρο (όπως σε αγώνες):
+              <select id="play-clock">
+                <option value="off">Χωρίς χρόνο</option>
+                <option value="60+0">Bullet 1+0</option>
+                <option value="120+1">Bullet 2+1</option>
+                <option value="180+2">Blitz 3+2</option>
+                <option value="300+0">Blitz 5+0</option>
+                <option value="600+0">Rapid 10+0</option>
+                <option value="900+10">Rapid 15+10</option>
+                <option value="1800+0">Classical 30+0</option>
+              </select>
+            </label>
+            <div class="chess-clocks" id="chess-clocks" style="display:none">
+              <div class="clock" id="clock-w"><span class="lbl">⚪ Λευκά</span><span class="t" id="clock-w-t">--:--</span></div>
+              <div class="clock" id="clock-b"><span class="lbl">⚫ Μαύρα</span><span class="t" id="clock-b-t">--:--</span></div>
+            </div>
             <h3 style="margin-bottom:4px;">Κινήσεις</h3>
             <div class="movelist" id="play-moves"></div>
           </div>
