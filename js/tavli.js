@@ -69,12 +69,15 @@
     let aiBusy = false;
     let drag = null, lastDrop = 0, locked = false;
     let destSet = new Set(), bearSet = new Set(), movSet = new Set();
+    let cubeValue = 1, cubeOwner = null, pendingDouble = null; // owner null=κέντρο
+    let score = { w: 0, b: 0 }, target = opts.target || 7, matchOver = false;
     let movBar = false;
     let hasRolled = false;      // έχει ρίξει ζάρια σε αυτή τη σειρά;
     let aceyStage = null;       // null | 'need_double' | 'need_reroll' (Ασσόδυο 1-2)
     const onInfo = opts.onInfo || function () {};
     const onTurn = opts.onTurn || function () {};
     const onWin = opts.onWin || function () {};
+    const onCube = opts.onCube || function () {};
 
     const boardWrap = document.createElement("div"); boardWrap.className = "bg-wrap";
     const boardEl = document.createElement("div"); boardEl.className = "bg-board";
@@ -90,6 +93,7 @@
       off = { w:0, b:0 }; pins = {};
       turn = "w"; dice = []; selected = null; aiBusy = false; locked = false;
       hasRolled = false; aceyStage = null;
+      cubeValue = 1; cubeOwner = null; pendingDouble = null;
       render(); renderDice();
       onTurn("w", null);
       info(`Παραλλαγή: ${variant.toUpperCase()}. Ρίξε ζάρια για να ξεκινήσεις. Σειρά: Λευκά.`);
@@ -215,7 +219,7 @@
 
     // ---------- ΖΑΡΙΑ ----------
     function roll() {
-      if (locked) return;
+      if (locked || pendingDouble) return;
       const d6 = () => 1 + Math.floor(Math.random() * 6);
       const who = turn === "w" ? "Λευκά" : "Μαύρα";
       hasRolled = true; aceyStage = null; selected = null;
@@ -252,7 +256,15 @@
       info(`Διάλεξες διπλή ${d}-${d}! Παίξ' την (4 κινήσεις) και μετά ρίξε ξανά.`);
     }
     function renderDice(animate) {
+      emitCube();
       diceEl.innerHTML = ""; diceTray.innerHTML = "";
+      if (pendingDouble) {
+        const s = document.createElement("span"); s.style.color = "var(--gold2)";
+        s.textContent = (vsComputer && other(pendingDouble.by) === aiSide)
+          ? "Ο υπολογιστής αποφασίζει για τον διπλασιασμό…"
+          : "Πρόταση διπλασιασμού — απάντησε (Take/Pass).";
+        diceEl.appendChild(s); return;
+      }
       if (!dice.length) {
         if (!isHumanTurn()) {
           const s = document.createElement("span"); s.style.color = "var(--muted)"; s.textContent = "Ο υπολογιστής σκέφτεται…"; diceEl.appendChild(s);
@@ -312,7 +324,7 @@
 
     // ---------- ΚΙΝΗΣΗ (core) ----------
     function onPointClick(idx) {
-      if (locked || !isHumanTurn()) return;
+      if (locked || pendingDouble || !isHumanTurn()) return;
       if (Date.now() - lastDrop < 250) return; // απορρόφησε το click μετά από drag
       if (!dice.length) { info("Ρίξε πρώτα ζάρια."); return; }
       if (bar[turn] > 0 && selected !== "bar") { info("Έχεις πούλι στη μπάρα — κάνε κλικ στη μπάρα για είσοδο."); selected = "bar"; render(); return; }
@@ -414,7 +426,7 @@
     function chkSize() { const c = boardEl.querySelector(".checker"); return c ? c.getBoundingClientRect().width : 30; }
     function moveGhost(e) { if (!drag) return; const s = chkSize(); drag.ghost.style.left = (e.clientX - s / 2) + "px"; drag.ghost.style.top = (e.clientY - s / 2) + "px"; }
     boardEl.addEventListener("pointerdown", (e) => {
-      if (locked || !isHumanTurn() || !dice.length) return;
+      if (locked || pendingDouble || !isHumanTurn() || !dice.length) return;
       let from;
       if (e.target.closest(".bg-bar")) { if (bar[turn] > 0) from = "bar"; }
       else { const pt = e.target.closest(".point"); if (pt) { const idx = +pt.dataset.idx; if (points[idx][turn] > 0 && pins[idx] !== turn) from = idx; } }
@@ -480,7 +492,69 @@
       if (!silent) info("Κανένα ζάρι δεν ταιριάζει για μάζεμα.");
       return false;
     }
-    function win(c) { locked = true; info(`🏆 Νίκη ${c==="w"?"Λευκών":"Μαύρων"}! Μάζεψαν και τα 15 πούλια.`); onWin(c); }
+    function win(c) {
+      const loser = other(c), gammon = off[loser] === 0 ? 2 : 1;
+      gameEnd(c, cubeValue * gammon, gammon === 2 ? "gammon" : "bear");
+    }
+
+    // ================= Doubling Cube + Σκορ ματς =================
+    function emitCube() {
+      const responder = pendingDouble ? other(pendingDouble.by) : null;
+      const humanResponder = pendingDouble && !(vsComputer && responder === aiSide);
+      onCube({
+        value: cubeValue, owner: cubeOwner, proposed: cubeValue * 2,
+        scoreW: score.w, scoreB: score.b, target, matchOver,
+        canDouble: !pendingDouble && !locked && !hasRolled && dice.length === 0 &&
+          isHumanTurn() && (cubeOwner === null || cubeOwner === turn) && cubeValue < 64,
+        awaitingHuman: !!humanResponder,
+      });
+    }
+    function double() {
+      if (pendingDouble || locked) return;
+      if (!(cubeOwner === null || cubeOwner === turn) || cubeValue >= 64) return;
+      pendingDouble = { by: turn };
+      info(`${turn === "w" ? "Λευκά" : "Μαύρα"} προτείνουν διπλασιασμό σε ×${cubeValue * 2}!`);
+      render(); renderDice();
+      if (vsComputer && other(turn) === aiSide) setTimeout(aiRespondDouble, 900);
+    }
+    function respond(accept) {
+      if (!pendingDouble) return;
+      const by = pendingDouble.by;
+      if (accept) {
+        cubeValue *= 2; cubeOwner = other(by); pendingDouble = null;
+        info(`Δέχτηκε ο διπλασιασμός — ο κύβος στο ×${cubeValue}.`);
+        render(); renderDice();
+        if (vsComputer && by === aiSide) resumeAiTurn();
+      } else {
+        pendingDouble = null;
+        gameEnd(by, cubeValue, "pass"); // ο διπλασιάζων κερδίζει την τρέχουσα αξία
+      }
+    }
+    function aiRespondDouble() {
+      if (!pendingDouble) return;
+      const accept = pip(aiSide) <= pip(pendingDouble.by) * 1.18;
+      info(`Ο υπολογιστής ${accept ? "δέχεται (take)" : "παρατάει (pass)"}.`);
+      respond(accept);
+    }
+    function aiShouldDouble() {
+      if (pendingDouble || locked || cubeValue >= 64) return false;
+      if (!(cubeOwner === null || cubeOwner === aiSide)) return false;
+      const my = pip(aiSide), opp = pip(other(aiSide));
+      return my < opp * 0.90 && my > opp * 0.55 && Math.random() < 0.6;
+    }
+    function resumeAiTurn() { aiBusy = true; renderDice(); setTimeout(() => { roll(); setTimeout(aiStep, 650); }, 450); }
+    function gameEnd(winner, points, reason) {
+      score[winner] += points; locked = true;
+      if (score[winner] >= target) {
+        matchOver = true;
+        info(`🏆 ΝΙΚΗ ΜΑΤΣ ${winner === "w" ? "Λευκών" : "Μαύρων"}! Τελικό σκορ ${score.w}-${score.b}.`);
+      } else {
+        const r = reason === "pass" ? "pass" : reason === "gammon" ? "γκάμον ×2" : "μάζεμα";
+        info(`${winner === "w" ? "Λευκά" : "Μαύρα"} +${points} πόντ. (${r}). Σκορ ${score.w}-${score.b}. Πάτα «Νέο» για επόμενο.`);
+      }
+      render(); renderDice(); onWin(winner);
+    }
+    function newMatch(t) { if (t) target = t; score = { w: 0, b: 0 }; matchOver = false; reset(); }
 
     // ---------- AI ----------
     function enumerateMoves(color) {
@@ -583,8 +657,9 @@
       return evalState(S, turn);
     }
     function maybeAI() {
-      if (locked || !vsComputer || turn !== aiSide || aiBusy) return;
+      if (locked || !vsComputer || turn !== aiSide || aiBusy || pendingDouble) return;
       if (off.w === 15 || off.b === 15) return;
+      if (aiShouldDouble()) { double(); return; }
       aiBusy = true;
       renderDice();
       setTimeout(() => { roll(); setTimeout(aiStep, 650); }, 500);
@@ -640,6 +715,7 @@
       setAiSide: (c) => { aiSide = c; reset(); },
       setAiLevel: (n) => { aiLevel = n; },
       setLocked: (v) => { locked = !!v; },
+      double, respond, newMatch,
       getInfo: () => ({ turn, variant, off, bar }),
     };
   }

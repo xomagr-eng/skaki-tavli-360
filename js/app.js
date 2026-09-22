@@ -344,13 +344,34 @@
     trun(turnC);
   }
 
+  function renderCubePanel(c) {
+    if (!$("#tavli-cube-val")) return;
+    $("#tavli-cube-val").textContent = "×" + c.value;
+    $("#tavli-cube-owner").textContent = c.owner ? "(" + (c.owner === "w" ? "Λευκά" : "Μαύρα") + ")" : "(στο κέντρο)";
+    $("#tavli-score").textContent = `Ματς: ⚪ ${c.scoreW} – ${c.scoreB} ⚫ (έως ${c.target})`;
+    const act = $("#tavli-cube-actions"); act.innerHTML = "";
+    if (c.awaitingHuman) {
+      const t = document.createElement("button"); t.className = "btn gold"; t.textContent = "✔ Δέχομαι ×" + c.proposed;
+      t.onclick = () => tavli.respond(true);
+      const p = document.createElement("button"); p.className = "btn"; p.textContent = "✖ Παρατάω";
+      p.onclick = () => tavli.respond(false);
+      act.appendChild(t); act.appendChild(p);
+    } else if (c.canDouble) {
+      const d = document.createElement("button"); d.className = "btn primary"; d.textContent = "⧉ Διπλασιασμός ×" + c.proposed;
+      d.onclick = () => tavli.double();
+      act.appendChild(d);
+    }
+  }
+
   function initTavli() {
     if (tavli) return;
     tavli = createTavli($("#tavli-board"), {
       variant: $("#tavli-variant").value,
+      target: parseInt($("#tavli-target").value, 10),
       onInfo: (msg) => { $("#tavli-info").textContent = msg; },
       onTurn: (turnC, prevC) => tclockOnTurn(turnC, prevC),
       onWin: () => tstop(),
+      onCube: renderCubePanel,
       onPips: (w, b, turn) => {
         const diff = Math.abs(w - b);
         const lead = w < b ? "Λευκά" : "Μαύρα";
@@ -360,17 +381,12 @@
           `<span class="pip-lead">${diff === 0 ? "🏁 Ισοπαλία στην κούρσα" : "🏁 Προηγείται " + lead + " κατά " + diff + " pips"}</span>`;
       },
     });
-    // In-game doubling cube
-    let cubeVal = 1;
-    const cubeEl = $("#tavli-cube");
-    const setCube = (v) => { cubeVal = v; cubeEl.textContent = v === 1 ? "1" : "×" + v; };
-    cubeEl.addEventListener("click", () => { setCube(cubeVal >= 64 ? 64 : (cubeVal === 1 ? 2 : cubeVal * 2)); if (window.SFX) SFX.move(); });
-    setCube(1);
-
-    $("#tavli-variant").addEventListener("change", () => { tavli.setVariant($("#tavli-variant").value); setCube(1); });
-    $("#tavli-reset").addEventListener("click", () => { tavli.reset(); setCube(1); });
+    $("#tavli-variant").addEventListener("change", () => tavli.setVariant($("#tavli-variant").value));
+    $("#tavli-reset").addEventListener("click", () => tavli.reset());
     $("#tavli-bearoff").addEventListener("click", () => tavli.bearOff());
-    $("#tavli-vs").addEventListener("change", () => { tavli.setVs($("#tavli-vs").checked); setCube(1); });
+    $("#tavli-vs").addEventListener("change", () => tavli.setVs($("#tavli-vs").checked));
+    $("#tavli-target").addEventListener("change", () => tavli.newMatch(parseInt($("#tavli-target").value, 10)));
+    $("#tavli-newmatch").addEventListener("click", () => tavli.newMatch(parseInt($("#tavli-target").value, 10)));
     $("#tavli-aiside").addEventListener("change", () => { if ($("#tavli-vs").checked) tavli.setAiSide($("#tavli-aiside").value); });
     tavli.setAiLevel(parseInt($("#tavli-ailevel").value, 10));
     $("#tavli-ailevel").addEventListener("change", () => tavli.setAiLevel(parseInt($("#tavli-ailevel").value, 10)));

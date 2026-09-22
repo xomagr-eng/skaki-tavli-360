@@ -361,9 +361,17 @@
           <label class="ck" style="margin:0">Δυσκολία AI:
             <select id="tavli-ailevel"><option value="1">Εύκολος</option><option value="2" selected>Μέτριος</option><option value="3">Δυνατός</option><option value="4">Πρωταθλητής</option></select>
           </label>
-          <span class="cube-inline" title="Ζάρι διπλασιασμού — κλικ για ×2">
-            <span style="color:var(--muted)">Cube:</span>
-            <span class="cube mini" id="tavli-cube">1</span>
+        </div>
+        <div class="btn-row" id="tavli-cube-panel">
+          <span class="cube mini" id="tavli-cube-val" title="Αξία κύβου">×1</span>
+          <span id="tavli-cube-owner" style="color:var(--muted);font-size:.85rem"></span>
+          <span id="tavli-score" style="color:var(--gold2);font-weight:600"></span>
+          <span id="tavli-cube-actions" style="display:flex;gap:6px"></span>
+          <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <label class="ck" style="margin:0">Ματς έως:
+              <select id="tavli-target"><option>1</option><option>3</option><option>5</option><option selected>7</option><option>11</option></select>
+            </label>
+            <button class="btn" id="tavli-newmatch">Νέο ματς</button>
           </span>
         </div>
         <div class="btn-row">
