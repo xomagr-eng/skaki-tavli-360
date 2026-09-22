@@ -327,6 +327,8 @@
     $("#tavli-bearoff").addEventListener("click", () => tavli.bearOff());
     $("#tavli-vs").addEventListener("change", () => { tavli.setVs($("#tavli-vs").checked); setCube(1); });
     $("#tavli-aiside").addEventListener("change", () => { if ($("#tavli-vs").checked) tavli.setAiSide($("#tavli-aiside").value); });
+    tavli.setAiLevel(parseInt($("#tavli-ailevel").value, 10));
+    $("#tavli-ailevel").addEventListener("change", () => tavli.setAiLevel(parseInt($("#tavli-ailevel").value, 10)));
   }
 
   // Κανόνες τάβλι (cards)

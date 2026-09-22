@@ -65,6 +65,7 @@
     let points, bar, off, pins, turn, dice, selected;
     let vsComputer = !!opts.vsComputer;
     let aiSide = opts.aiSide || "b";
+    let aiLevel = opts.aiLevel || 2;   // 1=Εύκολος, 2=Μέτριος, 3=Δυνατός
     let aiBusy = false;
     let drag = null, lastDrop = 0;
     let destSet = new Set(), bearSet = new Set(), movSet = new Set();
@@ -504,6 +505,14 @@
       }
       return res;
     }
+    // Κίνδυνος «πλακιού»: πόσα εχθρικά πούλια μπορούν να χτυπήσουν το toIdx (απόσταση 1-6)
+    function blotRisk(toIdx) {
+      const opp = other(turn), opth = path(opp), tpos = opth.indexOf(toIdx);
+      if (tpos < 0) return 0;
+      let hitters = 0;
+      for (let d = 1; d <= 6; d++) { const fp = tpos - d; if (fp >= 0 && points[opth[fp]][opp] > 0) hitters++; }
+      return hitters;
+    }
     function scoreMove(mv) {
       const color = turn, opp = other(color), pth = path(color);
       const dest = points[mv.toIdx];
@@ -512,9 +521,15 @@
       if (PLAKOTOLIKE(variant) && dest[opp] === 1) s += 65 + pth.indexOf(mv.toIdx) * 0.3;
       if (dest[color] >= 1) s += 25;
       if (FEVGALIKE(variant) && dest[color] >= 1) s += 15;
-      if (dest[color] === 0 && !(PORTESLIKE(variant) && dest[opp] === 1) && !FEVGALIKE(variant)) s -= 12;
-      if (mv.from !== "bar" && points[mv.from][color] === 2) s -= 8;
-      return s + Math.random() * 3;
+      const leavesBlot = dest[color] === 0 && !(PORTESLIKE(variant) && dest[opp] === 1) && !FEVGALIKE(variant);
+      if (leavesBlot) {
+        if (aiLevel === 2) s -= 12;
+        else if (aiLevel === 3) s -= 14 + blotRisk(mv.toIdx) * 9; // Δυνατός: αποφεύγει εκτεθειμένα πλακιά
+        // Εύκολος (1): αγνοεί τον κίνδυνο
+      }
+      if (mv.from !== "bar" && points[mv.from][color] === 2) s -= (aiLevel === 3 ? 12 : 8);
+      const jitter = aiLevel === 1 ? Math.random() * 45 : aiLevel === 2 ? Math.random() * 3 : 0;
+      return s + jitter;
     }
     function maybeAI() {
       if (!vsComputer || turn !== aiSide || aiBusy) return;
@@ -538,8 +553,9 @@
       }
       const moves = enumerateMoves(turn);
       if (moves.length) {
-        moves.sort((a,b) => scoreMove(b) - scoreMove(a));
-        const best = moves[0];
+        let best;
+        if (aiLevel === 1 && Math.random() < 0.5) best = moves[Math.floor(Math.random() * moves.length)];
+        else { moves.sort((a, b) => scoreMove(b) - scoreMove(a)); best = moves[0]; }
         const fr = topCheckerRect(best.from);
         applyMove(best.from, best.toIdx);
         render(); renderDice();
@@ -568,6 +584,7 @@
       setVariant: (v) => reset(v),
       setVs: (v) => { vsComputer = !!v; reset(); },
       setAiSide: (c) => { aiSide = c; reset(); },
+      setAiLevel: (n) => { aiLevel = n; },
       getInfo: () => ({ turn, variant, off, bar }),
     };
   }
