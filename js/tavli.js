@@ -21,14 +21,39 @@
       w: [23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0],
       b: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],
     },
+    // Τάπα & Μαχμπούσι: όπως Πλακωτό/Πόρτες (αντίθετες φορές)
+    tapa: {
+      w: [23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0],
+      b: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],
+    },
+    mahbusa: {
+      w: [23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0],
+      b: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23],
+    },
+    // Γκιούλμπαρα & Ταμπλά: ίδια φορά (όπως Φεύγα)
+    gulbara: {
+      w: [23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0],
+      b: [11,10,9,8,7,6,5,4,3,2,1,0,23,22,21,20,19,18,17,16,15,14,13,12],
+    },
+    tabula: {
+      w: [23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0],
+      b: [11,10,9,8,7,6,5,4,3,2,1,0,23,22,21,20,19,18,17,16,15,14,13,12],
+    },
   };
   const STARTS = {
     portes: () => { const p = empty(); p[23].w=2; p[12].w=5; p[7].w=3; p[5].w=5; p[0].b=2; p[11].b=5; p[16].b=3; p[18].b=5; return p; },
     plakoto: () => { const p = empty(); p[23].w=15; p[0].b=15; return p; },
     fevga: () => { const p = empty(); p[23].w=15; p[11].b=15; return p; },
     asodyo: () => empty(), // όλα τα πούλια ξεκινούν έξω (στη μπάρα)
+    tapa: () => { const p = empty(); p[23].w=15; p[0].b=15; return p; },
+    mahbusa: () => { const p = empty(); p[23].w=2; p[12].w=5; p[7].w=3; p[5].w=5; p[0].b=2; p[11].b=5; p[16].b=3; p[18].b=5; return p; },
+    gulbara: () => { const p = empty(); p[23].w=15; p[11].b=15; return p; },
+    tabula: () => empty(), // όλα τα πούλια ξεκινούν έξω (στη μπάρα)
   };
-  const PORTESLIKE = (v) => v === "portes" || v === "asodyo";
+  const BARSTART = (v) => v === "asodyo" || v === "tabula";
+  const PORTESLIKE = (v) => v === "portes" || v === "asodyo" || v === "tabula";   // χτύπημα
+  const PLAKOTOLIKE = (v) => v === "plakoto" || v === "tapa" || v === "mahbusa";  // πλάκωμα
+  const FEVGALIKE = (v) => v === "fevga" || v === "gulbara";                      // φράξιμο
   function empty() { return Array.from({ length: 24 }, () => ({ w: 0, b: 0 })); }
   function other(c) { return c === "w" ? "b" : "w"; }
 
@@ -58,7 +83,7 @@
     function reset(v) {
       if (v) variant = v;
       points = STARTS[variant]();
-      bar = variant === "asodyo" ? { w:15, b:15 } : { w:0, b:0 };
+      bar = BARSTART(variant) ? { w:15, b:15 } : { w:0, b:0 };
       off = { w:0, b:0 }; pins = {};
       turn = "w"; dice = []; selected = null; aiBusy = false;
       hasRolled = false; aceyStage = null;
@@ -87,8 +112,8 @@
         const toIdx = pth[tp], dest = points[toIdx];
         let ok = true;
         if (PORTESLIKE(variant)) { if (dest[opp] >= 2) ok = false; }
-        else if (variant === "plakoto") { if (pins[toIdx] && pins[toIdx] !== color) ok = dest[opp] < 2; else if (dest[opp] >= 2) ok = false; }
-        else if (variant === "fevga") { if (dest[opp] >= 1) ok = false; }
+        else if (PLAKOTOLIKE(variant)) { if (pins[toIdx] && pins[toIdx] !== color) ok = dest[opp] < 2; else if (dest[opp] >= 2) ok = false; }
+        else if (FEVGALIKE(variant)) { if (dest[opp] >= 1) ok = false; }
         if (ok) res.push(toIdx);
       }
       return res;
@@ -186,20 +211,34 @@
 
     // ---------- ΖΑΡΙΑ ----------
     function roll() {
-      const a = 1 + Math.floor(Math.random()*6), b = 1 + Math.floor(Math.random()*6);
+      const d6 = () => 1 + Math.floor(Math.random() * 6);
+      const who = turn === "w" ? "Λευκά" : "Μαύρα";
       hasRolled = true; aceyStage = null; selected = null;
+      // Ταμπλά: 3 ζάρια
+      if (variant === "tabula") {
+        const a = d6(), b = d6(), c = d6(); dice = [a, b, c];
+        if (global.SFX) SFX.dice(); renderDice(true); render();
+        info(`${who} έριξαν ${a}-${b}-${c} (3 ζάρια).`); return;
+      }
+      const a = d6(), b = d6();
       // Ασσόδυο: ειδικός κανόνας 1-2
       if (variant === "asodyo" && ((a===1&&b===2)||(a===2&&b===1))) {
         dice = [1, 2]; aceyStage = "need_double";
-        if (global.SFX) SFX.dice();
-        renderDice(true); render();
-        info(`⭐ ΑΣΣΟΔΥΟ! ${turn==="w"?"Λευκά":"Μαύρα"} έριξαν 1-2 — παίξε το 1 και το 2, μετά διάλεξε διπλή!`);
+        if (global.SFX) SFX.dice(); renderDice(true); render();
+        info(`⭐ ΑΣΣΟΔΥΟ! ${who} έριξαν 1-2 — παίξε το 1 και το 2, μετά διάλεξε διπλή!`);
+        return;
+      }
+      // Γκιούλμπαρα: διπλή → παίζεις d..6 (×4 το καθένα) και ρίχνεις ξανά
+      if (variant === "gulbara" && a === b) {
+        dice = []; for (let n = a; n <= 6; n++) dice.push(n, n, n, n);
+        aceyStage = "need_reroll";
+        if (global.SFX) SFX.dice(); renderDice(true); render();
+        info(`⭐ ΓΚΙΟΥΛΜΠΑΡΑ! Διπλή ${a}-${a} → παίζεις ${a} έως 6 (×4), μετά ρίξε ξανά!`);
         return;
       }
       dice = a === b ? [a,a,a,a] : [a,b];
-      if (global.SFX) SFX.dice();
-      renderDice(true); render();
-      info(`${turn==="w"?"Λευκά":"Μαύρα"} έριξαν ${a}-${b}${a===b?" (ντόρτια! 4 κινήσεις)":""}.`);
+      if (global.SFX) SFX.dice(); renderDice(true); render();
+      info(`${who} έριξαν ${a}-${b}${a===b?" (ντόρτια! 4 κινήσεις)":""}.`);
     }
     // Επιλογή διπλής μετά το ασσόδυο
     function pickDouble(d) {
@@ -301,15 +340,15 @@
       if (PORTESLIKE(variant)) {
         if (dest[opp] >= 2) { info("Κλειστή θέση (πόρτα αντιπάλου)."); return false; }
         if (dest[opp] === 1) { dest[opp] = 0; bar[opp]++; info("Χτύπημα! Πούλι αντιπάλου στη μπάρα."); }
-      } else if (variant === "plakoto") {
+      } else if (PLAKOTOLIKE(variant)) {
         if (pins[toIdx] === color) { /* ok */ }
         else if (dest[opp] >= 2) { info("Κλειστή θέση (πόρτα αντιπάλου)."); return false; }
         else if (dest[opp] === 1) { pins[toIdx] = opp; dest[opp] = 0; info("Πλάκωμα! Το πούλι αντιπάλου ακινητοποιήθηκε."); }
-      } else if (variant === "fevga") {
+      } else if (FEVGALIKE(variant)) {
         if (dest[opp] >= 1) { info("Κλειστή θέση (στη Φεύγα δεν μπαίνεις σε θέση αντιπάλου)."); return false; }
       }
       if (from === "bar") bar[color]--; else points[from][color]--;
-      if (variant === "plakoto" && from !== "bar" && points[from][color] === 0 && pins[from] && pins[from] !== color) {
+      if (PLAKOTOLIKE(variant) && from !== "bar" && points[from][color] === 0 && pins[from] && pins[from] !== color) {
         points[from][pins[from]] = 1; delete pins[from];
       }
       points[toIdx][color]++;
@@ -443,7 +482,7 @@
       if (bar[color] > 0) {
         for (const d of uniq) {
           const toIdx = pth[d-1], dest = points[toIdx];
-          if (variant === "fevga") { if (dest[opp] >= 1) continue; }
+          if (FEVGALIKE(variant)) { if (dest[opp] >= 1) continue; }
           else { if (dest[opp] >= 2) continue; }
           res.push({ from: "bar", toIdx, die: d });
         }
@@ -458,8 +497,8 @@
           const toIdx = pth[tp], dest = points[toIdx];
           let ok = true;
           if (PORTESLIKE(variant)) { if (dest[opp] >= 2) ok = false; }
-          else if (variant === "plakoto") { if (pins[toIdx] && pins[toIdx] !== color) ok = dest[opp] < 2; else if (dest[opp] >= 2) ok = false; }
-          else if (variant === "fevga") { if (dest[opp] >= 1) ok = false; }
+          else if (PLAKOTOLIKE(variant)) { if (pins[toIdx] && pins[toIdx] !== color) ok = dest[opp] < 2; else if (dest[opp] >= 2) ok = false; }
+          else if (FEVGALIKE(variant)) { if (dest[opp] >= 1) ok = false; }
           if (ok) res.push({ from: idx, toIdx, die: d });
         }
       }
@@ -469,11 +508,11 @@
       const color = turn, opp = other(color), pth = path(color);
       const dest = points[mv.toIdx];
       let s = pth.indexOf(mv.toIdx) * 0.6;
-      if (variant === "portes" && dest[opp] === 1) s += 70;
-      if (variant === "plakoto" && dest[opp] === 1) s += 65 + pth.indexOf(mv.toIdx) * 0.3;
+      if (PORTESLIKE(variant) && dest[opp] === 1) s += 70;
+      if (PLAKOTOLIKE(variant) && dest[opp] === 1) s += 65 + pth.indexOf(mv.toIdx) * 0.3;
       if (dest[color] >= 1) s += 25;
-      if (variant === "fevga" && dest[color] >= 1) s += 15;
-      if (dest[color] === 0 && !(variant === "portes" && dest[opp] === 1) && variant !== "fevga") s -= 12;
+      if (FEVGALIKE(variant) && dest[color] >= 1) s += 15;
+      if (dest[color] === 0 && !(PORTESLIKE(variant) && dest[opp] === 1) && !FEVGALIKE(variant)) s -= 12;
       if (mv.from !== "bar" && points[mv.from][color] === 2) s -= 8;
       return s + Math.random() * 3;
     }
