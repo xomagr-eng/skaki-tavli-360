@@ -71,7 +71,6 @@
     let destSet = new Set(), bearSet = new Set(), movSet = new Set();
     let cubeValue = 1, cubeOwner = null, pendingDouble = null; // owner null=κέντρο
     let score = { w: 0, b: 0 }, target = opts.target || 7, matchOver = false;
-    let history = []; // {winner, points, reason} ανά παιχνίδι του ματς
     let movBar = false;
     let hasRolled = false;      // έχει ρίξει ζάρια σε αυτή τη σειρά;
     let aceyStage = null;       // null | 'need_double' | 'need_reroll' (Ασσόδυο 1-2)
@@ -79,6 +78,7 @@
     const onTurn = opts.onTurn || function () {};
     const onWin = opts.onWin || function () {};
     const onCube = opts.onCube || function () {};
+    const onGameResult = opts.onGameResult || function () {};
 
     const boardWrap = document.createElement("div"); boardWrap.className = "bg-wrap";
     const boardEl = document.createElement("div"); boardEl.className = "bg-board";
@@ -504,7 +504,7 @@
       const humanResponder = pendingDouble && !(vsComputer && responder === aiSide);
       onCube({
         value: cubeValue, owner: cubeOwner, proposed: cubeValue * 2,
-        scoreW: score.w, scoreB: score.b, target, matchOver, history: history,
+        scoreW: score.w, scoreB: score.b, target, matchOver,
         canDouble: !pendingDouble && !locked && !hasRolled && dice.length === 0 &&
           isHumanTurn() && (cubeOwner === null || cubeOwner === turn) && cubeValue < 64,
         awaitingHuman: !!humanResponder,
@@ -546,7 +546,7 @@
     function resumeAiTurn() { aiBusy = true; renderDice(); setTimeout(() => { roll(); setTimeout(aiStep, 650); }, 450); }
     function gameEnd(winner, points, reason) {
       score[winner] += points; locked = true;
-      history.push({ winner, points, reason });
+      onGameResult({ winner, points, reason, vs: vsComputer, aiSide });
       if (score[winner] >= target) {
         matchOver = true;
         info(`🏆 ΝΙΚΗ ΜΑΤΣ ${winner === "w" ? "Λευκών" : "Μαύρων"}! Τελικό σκορ ${score.w}-${score.b}.`);
@@ -556,7 +556,7 @@
       }
       render(); renderDice(); onWin(winner);
     }
-    function newMatch(t) { if (t) target = t; score = { w: 0, b: 0 }; matchOver = false; history = []; reset(); }
+    function newMatch(t) { if (t) target = t; score = { w: 0, b: 0 }; matchOver = false; reset(); }
 
     // ---------- AI ----------
     function enumerateMoves(color) {

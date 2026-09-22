@@ -93,23 +93,83 @@
     runClock(newTurn);
   }
 
-  // ---------------- Ιστορικό παρτίδων σκακιού ----------------
-  let chessHistory = [], chessRecorded = false;
+  // ---------------- Ιστορικό & στατιστικά (μόνιμα) ----------------
+  const HKEY = { chess: "skakitavli_hist_chess_v1", tavli: "skakitavli_hist_tavli_v1" };
+  function loadH(k) { try { return JSON.parse(localStorage.getItem(HKEY[k])) || []; } catch (e) { return []; } }
+  function saveH(k, a) { try { localStorage.setItem(HKEY[k], JSON.stringify(a)); } catch (e) {} }
+  let histChess = loadH("chess"), histTavli = loadH("tavli"), chessRecorded = false;
+  function pct(n, d) { return d ? Math.round(n / d * 100) : 0; }
+  function calcStreak(winners) {
+    let len = 0, who = null;
+    for (let i = winners.length - 1; i >= 0; i--) {
+      const w = winners[i];
+      if (who === null) { if (w) { who = w; len = 1; } else break; }
+      else if (w === who) len++; else break;
+    }
+    return { len, who };
+  }
+  function histRows(h, mapper) {
+    const rows = h.slice(-40);
+    return rows.map((g, i) => mapper(g, h.length - rows.length + i + 1)).reverse().join("");
+  }
+
+  function renderChessStats() {
+    const el = $("#chess-stats"); if (!el) return;
+    const h = histChess; if (!h.length) { el.innerHTML = ""; return; }
+    const w = h.filter(g => g.winner === "w").length, b = h.filter(g => g.winner === "b").length, d = h.filter(g => !g.winner).length;
+    const vsAI = h.filter(g => g.vs && g.human);
+    const youW = vsAI.filter(g => g.winner === g.human).length, aiW = vsAI.filter(g => g.winner && g.winner !== g.human).length;
+    const st = calcStreak(h.map(g => g.winner));
+    let s = `<span class="stat">Σύνολο: <b>${h.length}</b></span><span class="stat">⚪ <b>${w}</b> – <b>${b}</b> ⚫</span><span class="stat">Ισοπαλίες: <b>${d}</b></span>`;
+    if (youW + aiW) s += `<span class="stat hl">Εσύ <b>${youW}</b> – <b>${aiW}</b> Υπολογιστής (${pct(youW, youW + aiW)}%)</span>`;
+    if (st.len >= 2) s += `<span class="stat">Σερί: <b>${st.len}</b> ${st.who === "w" ? "⚪" : "⚫"}</span>`;
+    el.innerHTML = s;
+  }
   function renderChessHistory() {
     const el = $("#chess-history"); if (!el) return;
-    el.innerHTML = chessHistory.map((g, i) => {
-      let who, cls;
-      if (g.winner === "w") { who = "⚪ Λευκά"; cls = "w"; }
-      else if (g.winner === "b") { who = "⚫ Μαύρα"; cls = "b"; }
-      else { who = "Ισοπαλία"; cls = "draw"; }
-      return `<div class="hist-item"><span>Παρτίδα ${i + 1}: <span class="who ${cls}">${who}</span></span><span class="det">${g.reason}</span></div>`;
-    }).join("");
+    el.innerHTML = histRows(histChess, (g, n) => {
+      let who = g.winner === "w" ? '<span class="who w">⚪ Λευκά</span>' : g.winner === "b" ? '<span class="who b">⚫ Μαύρα</span>' : '<span class="who draw">Ισοπαλία</span>';
+      return `<div class="hist-item"><span>#${n}: ${who}</span><span class="det">${g.reason}</span></div>`;
+    });
+    renderChessStats();
   }
   function recordChess(winner, reason) {
     if (chessRecorded) return;
     chessRecorded = true;
-    chessHistory.push({ winner, reason });
+    histChess.push({ winner, reason, vs: $("#play-vs").checked, human: $("#play-vs").checked ? $("#play-side").value : null, ts: Date.now() });
+    saveH("chess", histChess);
     renderChessHistory();
+  }
+
+  function renderTavliStats() {
+    const el = $("#tavli-stats"); if (!el) return;
+    const h = histTavli; if (!h.length) { el.innerHTML = ""; return; }
+    const w = h.filter(g => g.winner === "w").length, b = h.filter(g => g.winner === "b").length;
+    const ptsW = h.filter(g => g.winner === "w").reduce((s, g) => s + g.points, 0);
+    const ptsB = h.filter(g => g.winner === "b").reduce((s, g) => s + g.points, 0);
+    const gammons = h.filter(g => g.reason === "gammon").length;
+    const vsAI = h.filter(g => g.vs && g.human);
+    const youW = vsAI.filter(g => g.winner === g.human).length, aiW = vsAI.filter(g => g.winner !== g.human).length;
+    const st = calcStreak(h.map(g => g.winner));
+    let s = `<span class="stat">Παιχνίδια: <b>${h.length}</b></span><span class="stat">⚪ <b>${w}</b> – <b>${b}</b> ⚫</span><span class="stat">Πόντοι ⚪<b>${ptsW}</b>–<b>${ptsB}</b>⚫</span><span class="stat">Γκάμον: <b>${gammons}</b></span>`;
+    if (youW + aiW) s += `<span class="stat hl">Εσύ <b>${youW}</b> – <b>${aiW}</b> Υπολογιστής (${pct(youW, youW + aiW)}%)</span>`;
+    if (st.len >= 2) s += `<span class="stat">Σερί: <b>${st.len}</b> ${st.who === "w" ? "⚪" : "⚫"}</span>`;
+    el.innerHTML = s;
+  }
+  function renderTavliHistory() {
+    const el = $("#tavli-history"); if (!el) return;
+    el.innerHTML = histRows(histTavli, (g, n) => {
+      const who = g.winner === "w" ? '<span class="who w">⚪ Λευκά</span>' : '<span class="who b">⚫ Μαύρα</span>';
+      const r = g.reason === "pass" ? "pass" : g.reason === "gammon" ? "γκάμον ×2" : "μάζεμα";
+      return `<div class="hist-item"><span>#${n}: ${who}</span><span class="det">+${g.points} (${r})</span></div>`;
+    });
+    renderTavliStats();
+  }
+  function recordTavli(res) {
+    const human = res.vs ? (res.aiSide === "w" ? "b" : "w") : null;
+    histTavli.push({ winner: res.winner, points: res.points, reason: res.reason, vs: res.vs, human, ts: Date.now() });
+    saveH("tavli", histTavli);
+    renderTavliHistory();
   }
   function statusText(st, turn) {
     const who = turn === "w" ? "Λευκά" : "Μαύρα";
@@ -187,7 +247,8 @@
       },
     });
     $("#play-clock").addEventListener("change", newGame);
-    $("#chess-hist-clear").addEventListener("click", () => { chessHistory = []; renderChessHistory(); });
+    $("#chess-hist-clear").addEventListener("click", () => { histChess = []; saveH("chess", histChess); renderChessHistory(); });
+    renderChessHistory();
     $("#play-new").addEventListener("click", newGame);
     $("#play-flip").addEventListener("click", () => playBoard.flip());
     $("#play-undo").addEventListener("click", () => {
@@ -389,15 +450,6 @@
       d.onclick = () => tavli.double();
       act.appendChild(d);
     }
-    const hist = $("#tavli-history");
-    if (hist) {
-      const h = c.history || [];
-      hist.innerHTML = h.map((g, i) => {
-        const who = g.winner === "w" ? '<span class="who w">⚪ Λευκά</span>' : '<span class="who b">⚫ Μαύρα</span>';
-        const r = g.reason === "pass" ? "pass" : g.reason === "gammon" ? "γκάμον ×2" : "μάζεμα";
-        return `<div class="hist-item"><span>Παιχνίδι ${i + 1}: ${who}</span><span class="det">+${g.points} (${r})</span></div>`;
-      }).join("");
-    }
   }
 
   function initTavli() {
@@ -409,6 +461,7 @@
       onTurn: (turnC, prevC) => tclockOnTurn(turnC, prevC),
       onWin: () => tstop(),
       onCube: renderCubePanel,
+      onGameResult: recordTavli,
       onPips: (w, b, turn) => {
         const diff = Math.abs(w - b);
         const lead = w < b ? "Λευκά" : "Μαύρα";
@@ -427,7 +480,9 @@
     $("#tavli-aiside").addEventListener("change", () => { if ($("#tavli-vs").checked) tavli.setAiSide($("#tavli-aiside").value); });
     tavli.setAiLevel(parseInt($("#tavli-ailevel").value, 10));
     $("#tavli-ailevel").addEventListener("change", () => tavli.setAiLevel(parseInt($("#tavli-ailevel").value, 10)));
-    $("#tavli-clock").addEventListener("change", () => { tapplySelect(); tavli.reset(); setCube(1); });
+    $("#tavli-clock").addEventListener("change", () => { tapplySelect(); tavli.reset(); });
+    $("#tavli-hist-clear").addEventListener("click", () => { histTavli = []; saveH("tavli", histTavli); renderTavliHistory(); });
+    renderTavliHistory();
   }
 
   // Κανόνες τάβλι (cards)

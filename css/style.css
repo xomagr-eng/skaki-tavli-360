@@ -577,3 +577,10 @@ body[data-checkers="marble"] { --chk-w-hi:#ffffff; --chk-w-lo:#c8c8d0; --chk-b-h
 .hist-item .who.b { color: var(--muted); }
 .hist-item .who.draw { color: var(--muted); }
 .hist-item .det { color: var(--muted); }
+.stats-box { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.stats-box:empty { display: none; }
+.stat { background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 4px 10px; font-size: .82rem; color: var(--muted); }
+.stat b { color: var(--text); }
+.stat.hl { border-color: var(--gold); }
+.stat.hl b { color: var(--gold2); }
