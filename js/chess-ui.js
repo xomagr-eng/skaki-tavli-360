@@ -18,6 +18,7 @@
     let history = [];
     let pendingPromo = null; // {from,to,options}
     let dragging = null;     // {from, ghost, moved}
+    let hint = null;         // {from, to} προπονητής
     const enableDrag = opts.drag !== false;
     const onMove = opts.onMove || function () {};
     const onEnd = opts.onEnd || function () {};
@@ -45,6 +46,7 @@
           sq.dataset.i = i;
           if (sel === i) sq.classList.add("sel");
           if (lastMove && (lastMove.from === i || lastMove.to === i)) sq.classList.add("lastmove");
+          if (hint && (hint.from === i || hint.to === i)) sq.classList.add("hint");
           if (i === kInCheck) { sq.classList.add("check"); const km = document.createElement("div"); km.className = "kmark"; sq.appendChild(km); }
           const p = state.board[i];
           if (p) {
@@ -175,6 +177,7 @@
       state = Chess.makeMove(state, m);
       lastMove = { from: m.from, to: m.to };
       selected = null;
+      hint = null;
       redraw();
       if (fromRect) { const toEl = board.querySelector(`.sq[data-i="${m.to}"] .piece`); if (toEl) flyPiece(fromRect, toEl); }
       const st = Chess.status(state);
@@ -191,7 +194,9 @@
       setInteractive(v) { interactive = v; selected = null; redraw(); },
       flip() { flipped = !flipped; redraw(); },
       setFlipped(v) { flipped = !!v; redraw(); },
-      setFEN(fen) { state = Chess.fromFEN(fen); selected = null; lastMove = null; history = []; redraw(); },
+      setHint(m) { hint = m ? { from: m.from, to: m.to } : null; redraw(); },
+      clearHint() { hint = null; redraw(); },
+      setFEN(fen) { state = Chess.fromFEN(fen); selected = null; lastMove = null; hint = null; history = []; redraw(); },
       reset() { api.setFEN(Chess.START_FEN); },
       redraw,
       canUndo: () => history.length > 0,

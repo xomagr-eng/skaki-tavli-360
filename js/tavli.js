@@ -72,6 +72,7 @@
     let cubeValue = 1, cubeOwner = null, pendingDouble = null; // owner null=κέντρο
     let score = { w: 0, b: 0 }, target = opts.target || 7, matchOver = false;
     let movBar = false;
+    let coachOn = !!opts.coach, coachHL = null;
     let hasRolled = false;      // έχει ρίξει ζάρια σε αυτή τη σειρά;
     let aceyStage = null;       // null | 'need_double' | 'need_reroll' (Ασσόδυο 1-2)
     const onInfo = opts.onInfo || function () {};
@@ -79,6 +80,7 @@
     const onWin = opts.onWin || function () {};
     const onCube = opts.onCube || function () {};
     const onGameResult = opts.onGameResult || function () {};
+    const onCoach = opts.onCoach || function () {};
 
     const boardWrap = document.createElement("div"); boardWrap.className = "bg-wrap";
     const boardEl = document.createElement("div"); boardEl.className = "bg-board";
@@ -173,6 +175,12 @@
       bearSet = isHumanTurn() ? bearsFor() : new Set();
       const mv = isHumanTurn() ? movablePoints() : { pts: new Set(), bar: false };
       movSet = mv.pts; movBar = mv.bar;
+      coachHL = null;
+      if (coachOn && isHumanTurn() && dice.length && selected === null && !pendingDouble && !locked) {
+        const s = suggestMove();
+        if (s) { coachHL = s; movSet = new Set(); movBar = false; onCoach(s.reason); }
+        else onCoach("Δεν υπάρχει διαθέσιμη κίνηση με αυτή τη ζαριά.");
+      } else if (coachOn) { onCoach(""); }
       if (opts.onPips) opts.onPips(pip("w"), pip("b"), turn);
       boardEl.innerHTML = "";
       boardEl.appendChild(half(LAYOUT.topLeft, LAYOUT.botLeft));
@@ -196,6 +204,10 @@
       if (destSet.has(idx)) { el.classList.add("pdest"); const mk = document.createElement("div"); mk.className = "dest-mark " + pos; el.appendChild(mk); }
       if (bearSet.has(idx)) { el.classList.add("pbear"); const bm = document.createElement("div"); bm.className = "bear-mark " + pos; bm.textContent = pos === "top" ? "⬆" : "⬇"; el.appendChild(bm); }
       if (movSet.has(idx)) { el.classList.add("pmove"); const mm = document.createElement("div"); mm.className = "move-mark " + pos; el.appendChild(mm); }
+      if (coachHL) {
+        if (coachHL.from === idx) el.classList.add("pcoach");
+        if (coachHL.toIdx === idx) { el.classList.add("pcoach"); const cm = document.createElement("div"); cm.className = "coach-mark " + pos; cm.textContent = "➜"; el.appendChild(cm); }
+      }
       const cell = points[idx], total = cell.w + cell.b, shown = Math.min(total, 5);
       const pinnedColor = pins[idx];
       for (let s = 0; s < shown; s++) {
@@ -209,6 +221,7 @@
     }
     function renderBar(barCol) {
       if (movBar) barCol.classList.add("barmove");
+      if (coachHL && coachHL.from === "bar") barCol.classList.add("barcoach");
       const wrap = document.createElement("div");
       wrap.style.cssText = "display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:4px;";
       if (bar.b > 0) wrap.appendChild(mkChk("b", bar.b));
@@ -658,6 +671,24 @@
       simLand(S, turn, mv.from, mv.toIdx);
       return evalState(S, turn);
     }
+
+    // ---- Προπονητής: προτεινόμενη κίνηση + εξήγηση ----
+    function suggestMove() {
+      const moves = enumerateMoves(turn);
+      if (!moves.length) return null;
+      moves.sort((a, b) => scoreMoveChampion(b) - scoreMoveChampion(a));
+      const m = moves[0];
+      return { from: m.from, toIdx: m.toIdx, reason: coachReason(m) };
+    }
+    function coachReason(m) {
+      const color = turn, opp = other(color), dest = points[m.toIdx];
+      if (PORTESLIKE(variant) && dest[opp] === 1) return "🎯 Χτυπάει το πλακί του αντιπάλου — τον στέλνει στη μπάρα και κερδίζεις χρόνο!";
+      if (PLAKOTOLIKE(variant) && dest[opp] === 1) return "🔒 Πλακώνει πούλι του αντιπάλου — το ακινητοποιεί, τεράστιο πλεονέκτημα.";
+      if (dest[color] >= 1) return "🚪 Φτιάχνει/ενισχύει πόρτα — κλείνει θέση και μπλοκάρει τον αντίπαλο.";
+      if (m.from === "bar") return "↩️ Μπάζει πούλι από τη μπάρα πίσω στο παιχνίδι (υποχρεωτικό πρώτα).";
+      if (dest[color] === 0 && PORTESLIKE(variant) && blotRisk(m.toIdx) > 0) return "➡️ Καλή προώθηση — αλλά αφήνει «πλακί»· υπολόγισε το ρίσκο χτυπήματος.";
+      return "➡️ Ασφαλής προώθηση προς την οικία σου — χτίζει την κούρσα.";
+    }
     function maybeAI() {
       if (locked || !vsComputer || turn !== aiSide || aiBusy || pendingDouble) return;
       if (off.w === 15 || off.b === 15) return;
@@ -717,6 +748,7 @@
       setAiSide: (c) => { aiSide = c; reset(); },
       setAiLevel: (n) => { aiLevel = n; },
       setLocked: (v) => { locked = !!v; },
+      setCoach: (v) => { coachOn = !!v; render(); },
       double, respond, newMatch,
       getInfo: () => ({ turn, variant, off, bar }),
     };

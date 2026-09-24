@@ -201,6 +201,8 @@
                 <option value="3">Δυνατός</option>
               </select>
             </label>
+            <label class="ck"><input type="checkbox" id="play-coach"> 💡 Προπονητής (δείξε επόμενη κίνηση &amp; γιατί)</label>
+            <div class="coach-tip" id="play-coach-tip"></div>
             <label class="ck">⏱️ Χρονόμετρο (όπως σε αγώνες):
               <select id="play-clock">
                 <option value="off">Χωρίς χρόνο</option>
@@ -367,6 +369,7 @@
           <label class="ck" style="margin:0">Δυσκολία AI:
             <select id="tavli-ailevel"><option value="1">Εύκολος</option><option value="2" selected>Μέτριος</option><option value="3">Δυνατός</option><option value="4">Πρωταθλητής</option></select>
           </label>
+          <label class="ck" style="margin:0"><input type="checkbox" id="tavli-coach"> 💡 Προπονητής</label>
         </div>
         <div class="btn-row" id="tavli-cube-panel">
           <span class="cube mini" id="tavli-cube-val" title="Αξία κύβου">×1</span>
@@ -403,6 +406,7 @@
           </div>
         </div>
         <div class="status-line" id="tavli-info"></div>
+        <div class="coach-tip" id="tavli-coach-tip"></div>
         <div class="pip-meter" id="tavli-pip"></div>
         <div id="tavli-board"></div>
         <div class="callout">Πάτα <b>🎲 Ρίξε ζάρια</b>, μετά κλικ σε δικό σου πούλι και μετά στη θέση προορισμού (απόσταση = ζάρι). «Ντόρτια» = 4 κινήσεις. Όταν όλα τα πούλια σου φτάσουν στην οικία, πάτα «Μάζεμα». <em>Πλήρεις κανόνες στην καρτέλα «Κανόνες».</em></div>

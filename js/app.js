@@ -217,6 +217,45 @@
       }, 250);
     }
   }
+  // ---------------- Προπονητής σκακιού ----------------
+  function pieceNameGr(t) { return { p: "πιόνι", n: "ίππο", b: "αξιωματικό", r: "πύργο", q: "βασίλισσα", k: "βασιλιά" }[t] || "κομμάτι"; }
+  function reasonForChess(state, m) {
+    const p = state.board[m.from];
+    const san = Chess.toSAN(state, m);
+    const captured = m.ep || state.board[m.to];
+    const V = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+    if (san.includes("#")) return "🏁 <b>Ματ!</b> Τελειώνει την παρτίδα.";
+    if (san.includes("+")) return captured ? "Δίνει <b>σαχ</b> και κερδίζει υλικό." : "Δίνει <b>σαχ</b> — αναγκάζει τον αντίπαλο να αμυνθεί.";
+    if (m.castle) return "<b>Ροκέ</b>: ασφαλίζει τον βασιλιά και ενεργοποιεί τον πύργο.";
+    if (captured) {
+      if (V[captured.t] > V[p.t]) return `Κερδίζει υλικό — τρώει <b>${pieceNameGr(captured.t)}</b> με μικρότερο κομμάτι.`;
+      if (V[captured.t] === V[p.t]) return `Ισότιμη αλλαγή — τρώει ${pieceNameGr(captured.t)}.`;
+      return `Αιχμαλωσία ${pieceNameGr(captured.t)}.`;
+    }
+    const fr = Chess.rc(m.from)[0], backRank = p.c === "w" ? 7 : 0, dest = Chess.sqName(m.to);
+    if ((p.t === "n" || p.t === "b") && fr === backRank) return `<b>Ανάπτυξη</b>: βγάζει τον ${pieceNameGr(p.t)} στο παιχνίδι.`;
+    if (p.t === "p" && ["d4", "e4", "d5", "e5"].includes(dest)) return "<b>Έλεγχος κέντρου</b> — κερδίζει χώρο και γραμμές.";
+    if (p.t === "p") return "Προωθεί πιόνι / ανοίγει γραμμές.";
+    if (p.t === "r") return "Φέρνει τον <b>πύργο</b> σε ενεργή/ανοιχτή στήλη.";
+    if (p.t === "q" && fr === backRank) return "Ενεργοποιεί τη βασίλισσα (χωρίς να εκτεθεί).";
+    if (p.t === "k") return "Βελτιώνει τη θέση/ασφάλεια του βασιλιά.";
+    return "Βελτιώνει τη θέση σου.";
+  }
+  function updateChessCoach() {
+    if (!playBoard) return;
+    const tip = $("#play-coach-tip");
+    const st = playBoard.status(), state = playBoard.getState();
+    const terminal = st === "checkmate" || st === "stalemate" || st === "draw50" || st === "insufficient";
+    const vs = $("#play-vs").checked, humanToMove = !vs || state.turn === $("#play-side").value;
+    if (!$("#play-coach").checked || terminal || !humanToMove || clock.flagged) {
+      playBoard.clearHint(); if (tip) tip.innerHTML = ""; return;
+    }
+    const best = Chess.bestMove(state, 3);
+    if (!best) { playBoard.clearHint(); if (tip) tip.innerHTML = ""; return; }
+    playBoard.setHint(best);
+    if (tip) tip.innerHTML = `💡 Προτεινόμενη: <b>${Chess.toSAN(state, best)}</b> — ${reasonForChess(state, best)}`;
+  }
+
   function newGame() {
     playMovesArr = [];
     chessRecorded = false;
@@ -227,6 +266,7 @@
     updatePlayStatus();
     startClockGame();
     maybeAIMove();
+    updateChessCoach();
   }
   function initPlay() {
     if (playBoard) return;
@@ -244,9 +284,11 @@
           else recordChess(null, "Ανεπαρκές υλικό");
         }
         maybeAIMove();
+        updateChessCoach();
       },
     });
     $("#play-clock").addEventListener("change", newGame);
+    $("#play-coach").addEventListener("change", updateChessCoach);
     $("#chess-hist-clear").addEventListener("click", () => { histChess = []; saveH("chess", histChess); renderChessHistory(); });
     renderChessHistory();
     $("#play-new").addEventListener("click", newGame);
@@ -462,6 +504,8 @@
       onWin: () => tstop(),
       onCube: renderCubePanel,
       onGameResult: recordTavli,
+      coach: $("#tavli-coach").checked,
+      onCoach: (txt) => { const el = $("#tavli-coach-tip"); if (el) el.innerHTML = txt ? ("💡 " + txt) : ""; },
       onPips: (w, b, turn) => {
         const diff = Math.abs(w - b);
         const lead = w < b ? "Λευκά" : "Μαύρα";
@@ -482,6 +526,7 @@
     $("#tavli-ailevel").addEventListener("change", () => tavli.setAiLevel(parseInt($("#tavli-ailevel").value, 10)));
     $("#tavli-clock").addEventListener("change", () => { tapplySelect(); tavli.reset(); });
     $("#tavli-hist-clear").addEventListener("click", () => { histTavli = []; saveH("tavli", histTavli); renderTavliHistory(); });
+    $("#tavli-coach").addEventListener("change", () => tavli.setCoach($("#tavli-coach").checked));
     renderTavliHistory();
   }
 
