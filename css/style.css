@@ -601,3 +601,10 @@ body[data-checkers="marble"] { --chk-w-hi:#ffffff; --chk-w-lo:#c8c8d0; --chk-b-h
   box-shadow: 0 0 10px #2fd0e6; animation: bearPulse 1.1s ease-in-out infinite; }
 .coach-mark.top { top: 6%; } .coach-mark.bot { bottom: 6%; }
 .bg-bar.barcoach { box-shadow: inset 0 0 0 3px #2fd0e6, inset 3px 0 7px #000, inset -3px 0 7px #000; }
+
+/* ---- Ανάλυση παρτίδας ---- */
+.hist-item.an-bl { border-color: var(--red2); }
+.hist-item.an-bl b { color: var(--red2); }
+.hist-item.an-mi b { color: #e0a341; }
+.hist-item.an-in b { color: #d9c96a; }
+.an-ok { color: var(--muted); padding: 6px 4px; font-size: .88rem; }

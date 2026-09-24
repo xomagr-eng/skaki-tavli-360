@@ -256,9 +256,51 @@
     if (tip) tip.innerHTML = `💡 Προτεινόμενη: <b>${Chess.toSAN(state, best)}</b> — ${reasonForChess(state, best)}`;
   }
 
+  // ---------------- Ανάλυση παρτίδας (σκάκι) ----------------
+  function analyzeChessGame() {
+    const panel = $("#chess-analysis"); if (!panel) return;
+    if (!playMovesArr.length) { panel.innerHTML = "<div class='an-ok'>Δεν υπάρχει παρτίδα για ανάλυση ακόμη.</div>"; return; }
+    panel.innerHTML = "<div class='an-ok'>⏳ Αναλύω την παρτίδα…</div>";
+    setTimeout(() => {
+      const DEP = 2;
+      let state = Chess.fromFEN(Chess.START_FEN);
+      const rows = [], counts = { w: { bl: 0, mi: 0, in: 0 }, b: { bl: 0, mi: 0, in: 0 } };
+      for (let i = 0; i < playMovesArr.length; i++) {
+        const cleanSan = playMovesArr[i].replace(/[+#!?]/g, "");
+        const legal = Chess.legalMoves(state);
+        const played = legal.find(m => Chess.toSAN(state, m).replace(/[+#!?]/g, "") === cleanSan);
+        if (!played) break;
+        const side = state.turn;
+        const bestInfo = Chess.evalForMover(state, DEP);
+        const playedScore = Chess.scoreOfMove(state, played, DEP);
+        let loss = bestInfo.best - playedScore; if (loss < 0) loss = 0;
+        let cls = null;
+        if (loss >= 300) { cls = "bl"; counts[side].bl++; }
+        else if (loss >= 120) { cls = "mi"; counts[side].mi++; }
+        else if (loss >= 50) { cls = "in"; counts[side].in++; }
+        if (cls) rows.push({ no: Math.floor(i / 2) + 1, side, san: playMovesArr[i], bestSan: bestInfo.move ? Chess.toSAN(state, bestInfo.move) : "—", cls });
+        state = Chess.makeMove(state, played);
+      }
+      renderAnalysis(panel, rows, counts);
+    }, 30);
+  }
+  function renderAnalysis(panel, rows, counts) {
+    const sym = { bl: "??", mi: "?", in: "?!" }, lbl = { bl: "Σοβαρό λάθος", mi: "Λάθος", in: "Ανακρίβεια" };
+    let html = `<div class="stats-box">`
+      + `<span class="stat">⚪ <b>${counts.w.bl}</b>?? · <b>${counts.w.mi}</b>? · <b>${counts.w.in}</b>?!</span>`
+      + `<span class="stat">⚫ <b>${counts.b.bl}</b>?? · <b>${counts.b.mi}</b>? · <b>${counts.b.in}</b>?!</span></div>`;
+    if (!rows.length) html += "<div class='an-ok'>✓ Καμία σοβαρή αστοχία — καθαρή παρτίδα!</div>";
+    else html += rows.map(r => {
+      const who = r.side === "w" ? "⚪" : "⚫";
+      return `<div class="hist-item an-${r.cls}"><span>${who} ${r.no}. <b>${r.san}${sym[r.cls]}</b></span><span class="det">Καλύτερο: <b>${r.bestSan}</b></span></div>`;
+    }).join("");
+    panel.innerHTML = html;
+  }
+
   function newGame() {
     playMovesArr = [];
     chessRecorded = false;
+    if ($("#chess-analysis")) $("#chess-analysis").innerHTML = "";
     renderPlayMoves();
     playBoard.setFEN(Chess.START_FEN);
     const human = $("#play-side").value;
@@ -289,6 +331,7 @@
     });
     $("#play-clock").addEventListener("change", newGame);
     $("#play-coach").addEventListener("change", updateChessCoach);
+    $("#chess-analyze").addEventListener("click", analyzeChessGame);
     $("#chess-hist-clear").addEventListener("click", () => { histChess = []; saveH("chess", histChess); renderChessHistory(); });
     renderChessHistory();
     $("#play-new").addEventListener("click", newGame);

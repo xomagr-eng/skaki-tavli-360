@@ -459,8 +459,24 @@
     return best;
   }
 
+  // Αξιολόγηση για την πλευρά που κινείται (για ανάλυση παρτίδας)
+  function evalForMover(state, depth) {
+    const colorSign = state.turn === "w" ? 1 : -1;
+    let best = -Infinity, bm = null;
+    for (const m of orderMoves(state, legalMoves(state))) {
+      const val = -negamax(makeMove(state, m), depth - 1, -Infinity, Infinity, -colorSign);
+      if (val > best) { best = val; bm = m; }
+    }
+    return { best, move: bm };
+  }
+  function scoreOfMove(state, move, depth) {
+    const colorSign = state.turn === "w" ? 1 : -1;
+    return -negamax(makeMove(state, move), depth - 1, -Infinity, Infinity, -colorSign);
+  }
+
   global.Chess = {
     START_FEN, fromFEN, toFEN, clone, legalMoves, movesFrom, makeMove,
     status, inCheck, toSAN, sqName, nameToIdx, idx, rc, bestMove, evaluate, findKing,
+    evalForMover, scoreOfMove,
   };
 })(window);
