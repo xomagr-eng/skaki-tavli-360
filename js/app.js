@@ -836,13 +836,18 @@
     mb.addEventListener("click", () => { if (window.SFX) { SFX.setMuted(!SFX.muted); if (!SFX.muted) SFX.dice(); } syncMute(); });
   }
 
-  // Λειτουργία εστίασης (board πρωταγωνιστής)
+  // Λειτουργία εστίασης (board πρωταγωνιστής) — θυμάται την κατάσταση
+  const FOCUS_KEY = "skakitavli_focus_v1";
+  function setFocus(on) {
+    document.body.dataset.focus = on ? "on" : "off";
+    $("#focus-toggle").textContent = on ? "✕ Έξοδος" : "⛶ Εστίαση";
+    try { localStorage.setItem(FOCUS_KEY, on ? "1" : "0"); } catch (e) {}
+  }
   $("#focus-toggle").addEventListener("click", () => {
-    const on = document.body.dataset.focus === "on";
-    document.body.dataset.focus = on ? "off" : "on";
-    $("#focus-toggle").textContent = on ? "⛶ Εστίαση" : "✕ Έξοδος";
+    setFocus(document.body.dataset.focus !== "on");
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
+  try { if (localStorage.getItem(FOCUS_KEY) === "1") setFocus(true); } catch (e) {}
 
   // ---------------- INIT ----------------
   setupAppearance();
