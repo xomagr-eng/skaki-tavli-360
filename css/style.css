@@ -624,3 +624,10 @@ body[data-focus="on"] #sub-c-play > .card > h2 { display: none; }
 body[data-focus="on"] #sub-c-play .board-wrap { gap: 10px; }
 body[data-focus="on"] #sub-c-play .side-panel > *:not(#play-status):not(#play-coach-tip) { display: none !important; }
 body[data-focus="on"] .chessboard { width: min(94vw, 700px); }
+/* Μεγαλύτερα ζάρια & πούλια/πιόνια στην Εστίαση (καλύτερη ορατότητα στο κινητό) */
+body[data-focus="on"] .dice-tray .die { width: 76px; height: 76px; border-radius: 15px; }
+body[data-focus="on"] .dice-tray .die-dots { width: 56px; height: 56px; }
+body[data-focus="on"] .dice-tray .die-dots span { width: 13px; height: 13px; }
+body[data-focus="on"] .checker { width: 88%; margin: -5% 0; }
+body[data-focus="on"] .sq .piece.svg { width: 100%; height: 100%; }
+body[data-focus="on"] .sq .piece:not(.svg) { font-size: min(11.5vw, 62px); }
