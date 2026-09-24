@@ -387,8 +387,12 @@
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
           <h3 style="margin:0;font-size:1rem;color:var(--gold)">Ιστορικό & στατιστικά</h3>
-          <button class="btn" id="tavli-hist-clear" style="padding:3px 9px;font-size:.8rem">Καθάρισε</button>
+          <span style="display:flex;gap:6px">
+            <button class="btn" id="tavli-summary-btn" style="padding:3px 9px;font-size:.8rem">🔍 Σύνοψη</button>
+            <button class="btn" id="tavli-hist-clear" style="padding:3px 9px;font-size:.8rem">Καθάρισε</button>
+          </span>
         </div>
+        <div class="match-history" id="tavli-summary"></div>
         <div class="stats-box" id="tavli-stats"></div>
         <div class="match-history" id="tavli-history"></div>
         <div class="btn-row">

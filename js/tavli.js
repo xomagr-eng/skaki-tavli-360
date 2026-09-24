@@ -56,6 +56,7 @@
   const FEVGALIKE = (v) => v === "fevga" || v === "gulbara";                      // φράξιμο
   function empty() { return Array.from({ length: 24 }, () => ({ w: 0, b: 0 })); }
   function other(c) { return c === "w" ? "b" : "w"; }
+  function newStats() { return { hits: 0, gotHit: 0, pins: 0, points: 0, blots: 0, pipsLost: 0 }; }
 
   const LAYOUT = { topLeft:[12,13,14,15,16,17], topRight:[18,19,20,21,22,23], botLeft:[11,10,9,8,7,6], botRight:[5,4,3,2,1,0] };
 
@@ -73,6 +74,7 @@
     let score = { w: 0, b: 0 }, target = opts.target || 7, matchOver = false;
     let movBar = false;
     let coachOn = !!opts.coach, coachHL = null;
+    let stats = { w: newStats(), b: newStats() };
     let hasRolled = false;      // έχει ρίξει ζάρια σε αυτή τη σειρά;
     let aceyStage = null;       // null | 'need_double' | 'need_reroll' (Ασσόδυο 1-2)
     const onInfo = opts.onInfo || function () {};
@@ -97,6 +99,7 @@
       turn = "w"; dice = []; selected = null; aiBusy = false; locked = false;
       hasRolled = false; aceyStage = null;
       cubeValue = 1; cubeOwner = null; pendingDouble = null;
+      stats = { w: newStats(), b: newStats() };
       render(); renderDice();
       onTurn("w", null);
       info(`Παραλλαγή: ${variant.toUpperCase()}. Ρίξε ζάρια για να ξεκινήσεις. Σειρά: Λευκά.`);
@@ -324,7 +327,19 @@
       d.appendChild(grid); return d;
     }
 
+    function countExposed(color) {
+      const opp = other(color), opth = path(opp); let c = 0;
+      for (let i = 0; i < 24; i++) {
+        if (points[i][color] === 1 && !(pins[i] && pins[i] !== color)) {
+          const tpos = opth.indexOf(i);
+          for (let d = 1; d <= 6; d++) { const fp = tpos - d; if (fp >= 0 && points[opth[fp]][opp] > 0) { c++; break; } }
+        }
+      }
+      return c;
+    }
     function endTurn() {
+      if (dice.length) stats[turn].pipsLost += dice.reduce((a, b) => a + b, 0);
+      stats[turn].blots += countExposed(turn);
       const prev = turn;
       turn = other(turn); dice = []; selected = null; hasRolled = false; aceyStage = null; render(); renderDice();
       onTurn(turn, prev);
@@ -372,11 +387,11 @@
       const dest = points[toIdx];
       if (PORTESLIKE(variant)) {
         if (dest[opp] >= 2) { info("Κλειστή θέση (πόρτα αντιπάλου)."); return false; }
-        if (dest[opp] === 1) { dest[opp] = 0; bar[opp]++; info("Χτύπημα! Πούλι αντιπάλου στη μπάρα."); }
+        if (dest[opp] === 1) { dest[opp] = 0; bar[opp]++; stats[color].hits++; stats[opp].gotHit++; info("Χτύπημα! Πούλι αντιπάλου στη μπάρα."); }
       } else if (PLAKOTOLIKE(variant)) {
         if (pins[toIdx] === color) { /* ok */ }
         else if (dest[opp] >= 2) { info("Κλειστή θέση (πόρτα αντιπάλου)."); return false; }
-        else if (dest[opp] === 1) { pins[toIdx] = opp; dest[opp] = 0; info("Πλάκωμα! Το πούλι αντιπάλου ακινητοποιήθηκε."); }
+        else if (dest[opp] === 1) { pins[toIdx] = opp; dest[opp] = 0; stats[color].pins++; info("Πλάκωμα! Το πούλι αντιπάλου ακινητοποιήθηκε."); }
       } else if (FEVGALIKE(variant)) {
         if (dest[opp] >= 1) { info("Κλειστή θέση (στη Φεύγα δεν μπαίνεις σε θέση αντιπάλου)."); return false; }
       }
@@ -384,7 +399,9 @@
       if (PLAKOTOLIKE(variant) && from !== "bar" && points[from][color] === 0 && pins[from] && pins[from] !== color) {
         points[from][pins[from]] = 1; delete pins[from];
       }
+      const prevOwn = points[toIdx][color];
       points[toIdx][color]++;
+      if (prevOwn === 1) stats[color].points++;
       dice.splice(dieIdx, 1);
       return true;
     }
@@ -559,7 +576,7 @@
     function resumeAiTurn() { aiBusy = true; renderDice(); setTimeout(() => { roll(); setTimeout(aiStep, 650); }, 450); }
     function gameEnd(winner, points, reason) {
       score[winner] += points; locked = true;
-      onGameResult({ winner, points, reason, vs: vsComputer, aiSide });
+      onGameResult({ winner, points, reason, vs: vsComputer, aiSide, stats: { w: Object.assign({}, stats.w), b: Object.assign({}, stats.b), variant } });
       if (score[winner] >= target) {
         matchOver = true;
         info(`🏆 ΝΙΚΗ ΜΑΤΣ ${winner === "w" ? "Λευκών" : "Μαύρων"}! Τελικό σκορ ${score.w}-${score.b}.`);
@@ -749,6 +766,7 @@
       setAiLevel: (n) => { aiLevel = n; },
       setLocked: (v) => { locked = !!v; },
       setCoach: (v) => { coachOn = !!v; render(); },
+      getSummary: () => ({ w: Object.assign({}, stats.w), b: Object.assign({}, stats.b), variant }),
       double, respond, newMatch,
       getInfo: () => ({ turn, variant, off, bar }),
     };

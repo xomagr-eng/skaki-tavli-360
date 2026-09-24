@@ -170,6 +170,23 @@
     histTavli.push({ winner: res.winner, points: res.points, reason: res.reason, vs: res.vs, human, ts: Date.now() });
     saveH("tavli", histTavli);
     renderTavliHistory();
+    if (res.stats) renderTavliSummary(res.stats);
+  }
+  function renderTavliSummary(sum) {
+    const el = $("#tavli-summary"); if (!el) return;
+    if (!sum) { el.innerHTML = ""; return; }
+    const plakotoLike = ["plakoto", "tapa", "mahbusa"].includes(sum.variant);
+    const rows = [
+      ["🎯 Χτυπήματα", "hits", !plakotoLike],
+      ["🔒 Πλακώματα", "pins", plakotoLike],
+      ["💥 Χτυπήθηκες", "gotHit", !plakotoLike],
+      ["🚪 Πόρτες που έφτιαξες", "points", true],
+      ["⚠️ Εκτεθειμένα πλακιά", "blots", !plakotoLike],
+      ["🎲 Χαμένοι πόντοι ζαριού", "pipsLost", true],
+    ];
+    let html = `<div class="hist-item" style="font-weight:600;color:var(--gold2)"><span>Σύνοψη παιχνιδιού</span><span>⚪ / ⚫</span></div>`;
+    html += rows.filter(r => r[2]).map(([label, key]) => `<div class="hist-item"><span>${label}</span><span class="det"><b>${sum.w[key]}</b> / <b>${sum.b[key]}</b></span></div>`).join("");
+    el.innerHTML = html;
   }
   function statusText(st, turn) {
     const who = turn === "w" ? "Λευκά" : "Μαύρα";
@@ -570,6 +587,7 @@
     $("#tavli-clock").addEventListener("change", () => { tapplySelect(); tavli.reset(); });
     $("#tavli-hist-clear").addEventListener("click", () => { histTavli = []; saveH("tavli", histTavli); renderTavliHistory(); });
     $("#tavli-coach").addEventListener("change", () => tavli.setCoach($("#tavli-coach").checked));
+    $("#tavli-summary-btn").addEventListener("click", () => renderTavliSummary(tavli.getSummary()));
     renderTavliHistory();
   }
 
