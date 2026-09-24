@@ -608,3 +608,19 @@ body[data-checkers="marble"] { --chk-w-hi:#ffffff; --chk-w-lo:#c8c8d0; --chk-b-h
 .hist-item.an-mi b { color: #e0a341; }
 .hist-item.an-in b { color: #d9c96a; }
 .an-ok { color: var(--muted); padding: 6px 4px; font-size: .88rem; }
+
+/* ---- Λειτουργία «Εστίαση» (board πρωταγωνιστής) ---- */
+#focus-toggle { position: fixed; top: 8px; right: 8px; z-index: 300; padding: 6px 12px; box-shadow: var(--shadow); }
+body[data-focus="on"] header.top { display: none; }
+body[data-focus="on"] .subnav { display: none; }
+body[data-focus="on"] main { padding: 8px 8px 60px; max-width: 100%; }
+body[data-focus="on"] #focus-toggle { background: linear-gradient(180deg, var(--red2), var(--red)); color: #fff; border-color: #7a2a1c; }
+/* Τάβλι: κράτα ταμπλό + σύντομο status/pip/coach/cube */
+body[data-focus="on"] #sub-t-play > .card { padding: 6px; }
+body[data-focus="on"] #sub-t-play > .card > *:not(#tavli-board):not(#tavli-info):not(#tavli-pip):not(#tavli-coach-tip):not(#tavli-cube-panel) { display: none !important; }
+body[data-focus="on"] .bg-board { width: min(98vw, 880px); }
+/* Σκάκι: μεγάλη σκακιέρα, ελάχιστο πλάι */
+body[data-focus="on"] #sub-c-play > .card > h2 { display: none; }
+body[data-focus="on"] #sub-c-play .board-wrap { gap: 10px; }
+body[data-focus="on"] #sub-c-play .side-panel > *:not(#play-status):not(#play-coach-tip) { display: none !important; }
+body[data-focus="on"] .chessboard { width: min(94vw, 700px); }

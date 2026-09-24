@@ -170,9 +170,23 @@
     histTavli.push({ winner: res.winner, points: res.points, reason: res.reason, vs: res.vs, human, ts: Date.now() });
     saveH("tavli", histTavli);
     renderTavliHistory();
-    if (res.stats) renderTavliSummary(res.stats);
+    if (res.stats) renderTavliSummary(res.stats, res.vs ? (res.aiSide === "w" ? "b" : "w") : null);
   }
-  function renderTavliSummary(sum) {
+  function tavliTips(s, plakotoLike) {
+    const t = [];
+    if (!plakotoLike) {
+      if (s.blots >= 4) t.push("Αφήνεις πολλά εκτεθειμένα «πλακιά» — προτίμησε κινήσεις που φτιάχνουν πόρτες ή κρύβουν τα μονά πούλια.");
+      if (s.gotHit >= 3) t.push("Σε χτύπησαν αρκετά — μην αφήνεις μονά πούλια κοντά στα πούλια του αντιπάλου.");
+      if (s.hits === 0) t.push("Δεν έκανες χτυπήματα — όταν ο αντίπαλος αφήνει «πλακί», χτύπα το για να κερδίσεις χρόνο.");
+    } else {
+      if (s.pins === 0) t.push("Δεν πλάκωσες πούλια — ψάξε ευκαιρίες να ακινητοποιήσεις πούλι του αντιπάλου, ειδικά κοντά στην έξοδό του.");
+    }
+    if (s.points <= 1) t.push("Έφτιαξες λίγες πόρτες — χτίσε συνεχόμενα σημεία (φράγμα) για να μπλοκάρεις τον αντίπαλο.");
+    if (s.pipsLost >= 4) t.push("Έχασες πόντους από τα ζάρια — σχεδίασε τις κινήσεις ώστε να παίζεις ΟΛΑ τα ζάρια σου.");
+    if (!t.length) t.push("Πολύ καλό παιχνίδι! Συνέχισε να ισορροπείς ασφάλεια και ταχύτητα.");
+    return t;
+  }
+  function renderTavliSummary(sum, humanSide) {
     const el = $("#tavli-summary"); if (!el) return;
     if (!sum) { el.innerHTML = ""; return; }
     const plakotoLike = ["plakoto", "tapa", "mahbusa"].includes(sum.variant);
@@ -187,6 +201,14 @@
     let html = `<div class="hist-item" style="font-weight:600;color:var(--gold2)"><span>Σύνοψη παιχνιδιού</span><span>⚪ / ⚫</span></div>`;
     html += rows.filter(r => r[2]).map(([label, key]) => `<div class="hist-item"><span>${label}</span><span class="det"><b>${sum.w[key]}</b> / <b>${sum.b[key]}</b></span></div>`).join("");
     el.innerHTML = html;
+    // Συμβουλές βελτίωσης
+    const tipEl = $("#tavli-tips"); if (!tipEl) return;
+    const block = (side, label) => {
+      const tips = tavliTips(sum[side], plakotoLike);
+      return `<div class="coach-tip"><b>🧭 Συμβουλές (${label}):</b><ul style="margin:6px 0 0;padding-left:18px">${tips.map(x => `<li>${x}</li>`).join("")}</ul></div>`;
+    };
+    if (humanSide) tipEl.innerHTML = block(humanSide, "εσένα");
+    else tipEl.innerHTML = block("w", "⚪ Λευκά") + block("b", "⚫ Μαύρα");
   }
   function statusText(st, turn) {
     const who = turn === "w" ? "Λευκά" : "Μαύρα";
@@ -312,12 +334,29 @@
       return `<div class="hist-item an-${r.cls}"><span>${who} ${r.no}. <b>${r.san}${sym[r.cls]}</b></span><span class="det">Καλύτερο: <b>${r.bestSan}</b></span></div>`;
     }).join("");
     panel.innerHTML = html;
+    // Συμβουλές βελτίωσης
+    const tipEl = $("#chess-tips");
+    if (tipEl) {
+      const vs = $("#play-vs").checked, humanSide = vs ? $("#play-side").value : null;
+      const block = (side, label) => `<div class="coach-tip"><b>🧭 Συμβουλές (${label}):</b><ul style="margin:6px 0 0;padding-left:18px">${chessTips(counts, side).map(x => `<li>${x}</li>`).join("")}</ul></div>`;
+      tipEl.innerHTML = humanSide ? block(humanSide, "εσένα") : block("w", "⚪ Λευκά") + block("b", "⚫ Μαύρα");
+    }
+  }
+  function chessTips(c, side) {
+    const s = c[side] || { bl: 0, mi: 0, in: 0 }, t = [];
+    if (s.bl >= 1) t.push("Είχες σοβαρά λάθη — πριν από ΚΑΘΕ κίνηση τσέκαρε αν αφήνεις κομμάτι ακάλυπτο (hanging).");
+    if (s.mi >= 2) t.push("Αρκετά λάθη — ρώτα «τι απειλεί ο αντίπαλος;» πριν παίξεις.");
+    if (s.in >= 3) t.push("Πολλές ανακρίβειες — δούλεψε βασικά τακτικά μοτίβα (πιρούνι, καρφί, σουβλιά).");
+    if (s.bl + s.mi + s.in === 0) t.push("Καθαρή παρτίδα — καμία σοβαρή αστοχία! Συνέχισε έτσι.");
+    t.push("Λύσε 5-10 ασκήσεις τακτικής κάθε μέρα (καρτέλα «Ασκήσεις»).");
+    return t;
   }
 
   function newGame() {
     playMovesArr = [];
     chessRecorded = false;
     if ($("#chess-analysis")) $("#chess-analysis").innerHTML = "";
+    if ($("#chess-tips")) $("#chess-tips").innerHTML = "";
     renderPlayMoves();
     playBoard.setFEN(Chess.START_FEN);
     const human = $("#play-side").value;
@@ -796,6 +835,14 @@
     syncMute();
     mb.addEventListener("click", () => { if (window.SFX) { SFX.setMuted(!SFX.muted); if (!SFX.muted) SFX.dice(); } syncMute(); });
   }
+
+  // Λειτουργία εστίασης (board πρωταγωνιστής)
+  $("#focus-toggle").addEventListener("click", () => {
+    const on = document.body.dataset.focus === "on";
+    document.body.dataset.focus = on ? "off" : "on";
+    $("#focus-toggle").textContent = on ? "⛶ Εστίαση" : "✕ Έξοδος";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
 
   // ---------------- INIT ----------------
   setupAppearance();
