@@ -611,6 +611,13 @@ body[data-checkers="marble"] { --chk-w-hi:#ffffff; --chk-w-lo:#c8c8d0; --chk-b-h
 
 /* ---- Λειτουργία «Εστίαση» (board πρωταγωνιστής) ---- */
 #focus-toggle { position: fixed; top: 8px; right: 8px; z-index: 300; padding: 6px 12px; box-shadow: var(--shadow); }
+
+/* Ειδοποίηση νέας έκδοσης */
+#update-toast { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 400;
+  display: none; align-items: center; gap: 10px; background: #10333a; border: 1px solid #2fd0e6;
+  color: #cdeef5; padding: 8px 14px; border-radius: 12px; box-shadow: var(--shadow); font-size: .9rem;
+  max-width: calc(100vw - 24px); }
+#update-toast .upd-x { background: transparent; border: none; color: #cdeef5; cursor: pointer; font-size: 1rem; padding: 0 4px; }
 body[data-focus="on"] header.top { display: none; }
 body[data-focus="on"] .subnav { display: none; }
 body[data-focus="on"] main { padding: 8px 8px 60px; max-width: 100%; }

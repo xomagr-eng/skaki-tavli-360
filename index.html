@@ -504,6 +504,12 @@
 
 <button id="focus-toggle" class="btn" title="Εστίαση στο ταμπλό/σκακιέρα">⛶ Εστίαση</button>
 
+<div id="update-toast">
+  <span>✨ Νέα έκδοση διαθέσιμη!</span>
+  <button class="btn gold upd-go" style="padding:4px 12px">Ανανέωση</button>
+  <button class="upd-x" title="Κλείσιμο" aria-label="Κλείσιμο">✕</button>
+</div>
+
 <footer>
   Σκάκι &amp; Τάβλι 360° · Offline εφαρμογή εκπαίδευσης · Παίζει τοπικά στον browser σου.
 </footer>
@@ -517,8 +523,32 @@
 <script src="js/app.js"></script>
 <script>
   if ("serviceWorker" in navigator) {
+    var swUpdating = false;
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+      if (swUpdating) location.reload(); // reload μόνο όταν ο χρήστης ζήτησε ανανέωση
+    });
+    function showUpdate(reg) {
+      var t = document.getElementById("update-toast");
+      if (!t) return;
+      t.style.display = "flex";
+      t.querySelector(".upd-go").onclick = function () {
+        swUpdating = true;
+        if (reg.waiting) reg.waiting.postMessage("SKIP_WAITING");
+        t.style.display = "none";
+      };
+      t.querySelector(".upd-x").onclick = function () { t.style.display = "none"; };
+    }
     window.addEventListener("load", function () {
-      navigator.serviceWorker.register("sw.js").catch(function () {});
+      navigator.serviceWorker.register("sw.js").then(function (reg) {
+        if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg);
+        reg.addEventListener("updatefound", function () {
+          var nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener("statechange", function () {
+            if (nw.state === "installed" && navigator.serviceWorker.controller) showUpdate(reg);
+          });
+        });
+      }).catch(function () {});
     });
   }
 </script>

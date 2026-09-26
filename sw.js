@@ -1,5 +1,5 @@
 /* ΣΚΑΚΙ & ΤΑΒΛΙ 360° — Service Worker (offline PWA) */
-const CACHE = "skakitavli-v14";
+const CACHE = "skakitavli-v15";
 const ASSETS = [
   "./", "./index.html", "./manifest.webmanifest",
   "./css/style.css",
@@ -9,7 +9,7 @@ const ASSETS = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
 });
 
 self.addEventListener("activate", (e) => {
@@ -18,6 +18,9 @@ self.addEventListener("activate", (e) => {
       .then(() => self.clients.claim())
   );
 });
+
+// Ο νέος SW ενεργοποιείται μόνο όταν ο χρήστης πατήσει «Ανανέωση»
+self.addEventListener("message", (e) => { if (e.data === "SKIP_WAITING") self.skipWaiting(); });
 
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
