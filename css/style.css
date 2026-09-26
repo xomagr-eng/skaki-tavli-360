@@ -642,15 +642,16 @@ body[data-focus="on"] .sq .piece:not(.svg) { font-size: min(11.5vw, 62px); }
 /* ---- Οριζόντια οθόνη (landscape) — κινητό & τάμπλετ έως ~15" ----
    Το ταμπλό/σκακιέρα μεγαλώνει βάσει ΥΨΟΥΣ και τα χειριστήρια πάνε δεξιά (2 στήλες). */
 @media (orientation: landscape) and (max-height: 1100px) {
-  main { padding-top: 8px; }
+  main { padding-top: 6px; }
+  .appearance { display: none; }        /* κρύψε τη μπάρα εμφάνισης — χώρος για το ταμπλό */
   /* Ταμπλό/σκακιέρα βάσει ύψους */
-  body .bg-board { width: auto !important; height: min(92vh, 780px) !important; max-width: 58vw; }
-  body .chessboard { width: auto !important; height: min(94vh, 780px) !important; max-width: 60vw; }
+  body .bg-board { width: auto !important; height: min(84vh, 760px) !important; max-width: 58vw; }
+  body .chessboard { width: auto !important; height: min(86vh, 760px) !important; max-width: 60vw; }
 
   /* ΤΑΒΛΙ: ταμπλό αριστερά (grid στήλη-1 που εκτείνεται), χειριστήρια δεξιά (στήλη-2) */
   body:not([data-focus="on"]) #sub-t-play > .card { display: grid; grid-template-columns: auto minmax(240px, 1fr); gap: 14px; align-items: start; }
   body:not([data-focus="on"]) #sub-t-play > .card > * { grid-column: 2; min-width: 0; }
-  body:not([data-focus="on"]) #sub-t-play > .card > #tavli-board { grid-column: 1; grid-row: 1 / 999; align-self: center; }
+  body:not([data-focus="on"]) #sub-t-play > .card > #tavli-board { grid-column: 1; grid-row: 1 / 999; align-self: start; }
 
   /* ΣΚΑΚΙ: σκακιέρα + πλαϊνό πάνελ δίπλα-δίπλα */
   #sub-c-play .board-wrap { flex-wrap: nowrap; align-items: flex-start; gap: 14px; }
