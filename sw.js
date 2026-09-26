@@ -1,5 +1,5 @@
 /* ΣΚΑΚΙ & ΤΑΒΛΙ 360° — Service Worker (offline PWA) */
-const CACHE = "skakitavli-v18";
+const CACHE = "skakitavli-v19";
 const ASSETS = [
   "./", "./index.html", "./manifest.webmanifest",
   "./css/style.css",
