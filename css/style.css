@@ -638,3 +638,26 @@ body[data-focus="on"] .dice-tray .die-dots span { width: 13px; height: 13px; }
 body[data-focus="on"] .checker { width: 88%; margin: -5% 0; }
 body[data-focus="on"] .sq .piece.svg { width: 100%; height: 100%; }
 body[data-focus="on"] .sq .piece:not(.svg) { font-size: min(11.5vw, 62px); }
+
+/* ---- Οριζόντια οθόνη (landscape) — κινητό & τάμπλετ έως ~15" ----
+   Το ταμπλό/σκακιέρα μεγαλώνει βάσει ΥΨΟΥΣ και τα χειριστήρια πάνε δεξιά (2 στήλες). */
+@media (orientation: landscape) and (max-height: 1100px) {
+  main { padding-top: 8px; }
+  /* Ταμπλό/σκακιέρα βάσει ύψους */
+  body .bg-board { width: auto !important; height: min(92vh, 780px) !important; max-width: 58vw; }
+  body .chessboard { width: auto !important; height: min(94vh, 780px) !important; max-width: 60vw; }
+
+  /* ΤΑΒΛΙ: ταμπλό αριστερά (float), χειριστήρια ρέουν δεξιά */
+  body:not([data-focus="on"]) #sub-t-play > .card > #tavli-board { float: left; margin: 0 16px 10px 0; }
+  #sub-t-play > .card::after { content: ""; display: block; clear: both; }
+
+  /* ΣΚΑΚΙ: σκακιέρα + πλαϊνό πάνελ δίπλα-δίπλα */
+  #sub-c-play .board-wrap { flex-wrap: nowrap; align-items: flex-start; gap: 14px; }
+  #sub-c-play .side-panel { min-width: 220px; max-height: 94vh; overflow: auto; }
+
+  /* Εστίαση: κεντραρισμένο, ακόμα μεγαλύτερο */
+  body[data-focus="on"] main { padding: 6px 6px 30px; }
+  body[data-focus="on"] #tavli-board { display: flex; justify-content: center; }
+  body[data-focus="on"] .bg-board { height: min(96vh, 820px) !important; max-width: 96vw; }
+  body[data-focus="on"] .chessboard { height: min(97vh, 820px) !important; max-width: 96vw; }
+}
